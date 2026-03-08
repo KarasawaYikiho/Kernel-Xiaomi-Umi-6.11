@@ -1,15 +1,33 @@
-name: Build Xiaomi 10 (umi) Kernel > 5
+name: Build Xiaomi 10 (umi) Kernel (Reference-style)
 
 on:
   workflow_dispatch:
     inputs:
       kernel_repo:
-        description: "Kernel source repo (must contain umi_defconfig and kernel VERSION > 5)"
+        description: "Kernel source repo URL (GitHub)"
         required: true
+        default: "https://github.com/SO-TS/android_kernel_xiaomi_sm8250.git"
       kernel_branch:
         description: "Kernel branch"
         required: true
-        default: "master"
+        default: "android16-aptusitu"
+      device:
+        description: "Target device codename"
+        required: true
+        default: "umi"
+        type: choice
+        options:
+          - umi
+          - lmi
+          - cmi
+          - apollo
+          - alioth
+          - thyme
+      ksu:
+        description: "Enable KernelSU"
+        required: true
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -21,93 +39,76 @@ jobs:
       - name: Checkout builder repo
         uses: actions/checkout@v4
 
+      - name: Cleanup disk
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            git bc bison flex libssl-dev make libc6-dev libncurses5-dev \
-            crossbuild-essential-arm64 ccache pahole lz4 xz-utils zstd \
-            python3 python3-pip
+            build-essential git curl wget bison flex zip bc cpio \
+            libssl-dev ccache python3 python-is-python3 \
+            gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
 
-      - name: Install LLVM/Clang
-        run: |
-          sudo apt-get install -y clang lld llvm
-          clang --version
+      - name: Setup cache (ccache)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache_mikernel
+          key: ccache-${{ github.event.inputs.device }}-${{ github.run_id }}
+          restore-keys: |
+            ccache-${{ github.event.inputs.device }}-
+            ccache-
 
-      - name: Clone kernel source (GitHub)
+      - name: Setup toolchain (ZyC Clang 15)
         run: |
-          git clone --depth=1 --branch "${{ github.event.inputs.kernel_branch }}" \
-            "${{ github.event.inputs.kernel_repo }}" kernel
+          mkdir -p "$HOME/zyc-clang"
+          cd "$HOME/zyc-clang"
+          wget -q https://github.com/ZyCromerZ/Clang/releases/download/15.0.7-20251111-release/Clang-15.0.7-20251111.tar.gz
+          tar -zxf Clang-15.0.7-20251111.tar.gz
+          "$HOME/zyc-clang/bin/clang" --version || true
 
-      - name: Validate kernel source (version + umi defconfig)
+      - name: Clone kernel source
         run: |
-          grep -E '^(VERSION|PATCHLEVEL|SUBLEVEL)\s*=\s*' kernel/Makefile
-          KV_MAJOR=$(grep -E '^VERSION\s*=\s*' kernel/Makefile | awk '{print $3}')
-          if [ -z "$KV_MAJOR" ] || [ "$KV_MAJOR" -le 5 ]; then
-            echo "[ERROR] Kernel VERSION must be > 5, got: ${KV_MAJOR:-unknown}" >&2
+          git clone --depth=1 --branch "${{ github.event.inputs.kernel_branch }}" "${{ github.event.inputs.kernel_repo }}" kernel
+
+      - name: Preflight checks
+        run: |
+          test -f kernel/Makefile
+          grep -E '^(VERSION|PATCHLEVEL|SUBLEVEL)\s*=\s*' kernel/Makefile || true
+
+          KV_MAJOR=$(grep -E '^VERSION\s*=\s*' kernel/Makefile | awk '{print $3}' || true)
+          if [ -n "$KV_MAJOR" ] && [ "$KV_MAJOR" -le 5 ]; then
+            echo "[WARN] Kernel VERSION is $KV_MAJOR (<=5). This workflow still builds, but it is not '>5'."
+          fi
+
+          if [ ! -f "kernel/arch/arm64/configs/${{ github.event.inputs.device }}_defconfig" ]; then
+            echo "[ERROR] Missing defconfig: arch/arm64/configs/${{ github.event.inputs.device }}_defconfig"
+            ls kernel/arch/arm64/configs/*_defconfig | sed 's#kernel/##' || true
             exit 1
           fi
 
-          if [ ! -f kernel/arch/arm64/configs/umi_defconfig ] && [ ! -f kernel/arch/arm64/configs/vendor/umi_defconfig ]; then
-            echo "[ERROR] umi_defconfig not found in source tree. Please provide a proper umi kernel repo/branch." >&2
-            exit 1
-          fi
-
-      - name: Pick defconfig (strict for umi)
-        id: defconfig
+      - name: Build kernel (reference build.sh)
+        working-directory: kernel
         run: |
-          if [ -f kernel/arch/arm64/configs/umi_defconfig ]; then
-            echo "name=umi_defconfig" >> "$GITHUB_OUTPUT"
-          elif [ -f kernel/arch/arm64/configs/vendor/umi_defconfig ]; then
-            echo "name=vendor/umi_defconfig" >> "$GITHUB_OUTPUT"
+          chmod +x build.sh
+          if [ "${{ github.event.inputs.ksu }}" = "true" ]; then
+            bash build.sh "${{ github.event.inputs.device }}" ksu
           else
-            echo "[ERROR] umi_defconfig not found in source tree. This is not a proper umi kernel source." >&2
-            exit 1
+            bash build.sh "${{ github.event.inputs.device }}"
           fi
 
-      - name: Build kernel
-        env:
-          ARCH: arm64
+      - name: Collect artifacts
         run: |
-          mkdir -p out
-          make -C kernel O=$PWD/out LLVM=1 LLVM_IAS=1 "${{ steps.defconfig.outputs.name }}"
-          make -C kernel O=$PWD/out LLVM=1 LLVM_IAS=1 -j"$(nproc)" Image.gz dtbs modules
+          mkdir -p artifacts
+          cp -v kernel/*.zip artifacts/ || true
+          cp -v kernel/out/.config artifacts/ || true
+          cp -v kernel/out/arch/arm64/boot/Image artifacts/ || true
+          cp -v kernel/out/arch/arm64/boot/dtb artifacts/ || true
 
-      - name: Install modules to staging
-        run: |
-          mkdir -p modules_staging
-          make -C kernel O=$PWD/out LLVM=1 LLVM_IAS=1 INSTALL_MOD_PATH=$PWD/modules_staging modules_install
-
-      - name: Collect artifacts (umi-focused + full package)
-        run: |
-          mkdir -p artifacts/slim artifacts/full
-          cp -v out/.config artifacts/slim/ || true
-          cp -v out/arch/arm64/boot/Image.gz artifacts/slim/ || true
-          cp -v out/arch/arm64/boot/Image artifacts/slim/ || true
-
-          # Prefer umi/sm8250 dtb files; fallback to all dtb/dtbo if none matched
-          found=0
-          while IFS= read -r f; do
-            cp -v "$f" artifacts/slim/
-            found=1
-          done < <(find out/arch/arm64/boot/dts -type f \( -name '*umi*.dtb' -o -name '*sm8250*.dtb' -o -name '*umi*.dtbo' -o -name '*sm8250*.dtbo' \) 2>/dev/null)
-
-          if [ "$found" -eq 0 ]; then
-            find out/arch/arm64/boot/dts -type f \( -name '*.dtb' -o -name '*.dtbo' \) -exec cp -v {} artifacts/slim/ \; || true
-          fi
-
-          # Full package (usually much larger, often near/over hundreds of MB)
-          tar --zstd -cf artifacts/full/modules.tar.zst -C modules_staging . || true
-          tar --zstd -cf artifacts/full/out.tar.zst -C out . || true
-
-      - name: Upload slim artifacts
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: umi-kernel-slim-${{ github.run_number }}
-          path: artifacts/slim/
-
-      - name: Upload full artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: umi-kernel-full-${{ github.run_number }}
-          path: artifacts/full/
+          name: umi-kernel-${{ github.run_number }}
+          path: artifacts/
+          if-no-files-found: error
