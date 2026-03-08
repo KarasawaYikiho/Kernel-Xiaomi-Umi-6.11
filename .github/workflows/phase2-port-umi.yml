@@ -35,7 +35,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y git bc bison flex libssl-dev make libc6-dev libncurses5-dev \
-            crossbuild-essential-arm64 ccache pahole lz4 xz-utils zstd python3 clang lld llvm
+            crossbuild-essential-arm64 ccache pahole lz4 xz-utils zstd python3 clang lld llvm zip
 
       - name: Clone source and target
         run: |
@@ -59,10 +59,10 @@ jobs:
           make -C target O=$PWD/out LLVM=1 LLVM_IAS=1 "${{ github.event.inputs.device }}_defconfig"
           make -C target O=$PWD/out LLVM=1 LLVM_IAS=1 -j"$(nproc)" Image.gz dtbs modules
 
-      - name: Collect artifacts
+      - name: Collect artifacts + umi-focused package
         if: always()
         run: |
-          mkdir -p artifacts
+          mkdir -p artifacts/umi_bundle
           cp -v target/porting/phase2/summary.txt artifacts/ || true
           cp -v target/porting/phase2/copied_dts.txt artifacts/ || true
           cp -v out/.config artifacts/ || true
@@ -71,14 +71,35 @@ jobs:
 
           # diagnostic lists
           find out/arch/arm64/boot/dts -type f \( -name '*.dtb' -o -name '*.dtbo' \) > artifacts/all_dtb_paths.txt || true
-          grep -Ei 'umi|sm8250|lmi|cmi|apollo|thyme|alioth' artifacts/all_dtb_paths.txt > artifacts/umi_related_dtb_paths.txt || true
 
-          # focused copy for review
-          if [ -s artifacts/umi_related_dtb_paths.txt ]; then
-            while IFS= read -r f; do
-              cp -v "$f" artifacts/ || true
-            done < artifacts/umi_related_dtb_paths.txt
+          # stricter umi-first matching
+          grep -Ei '/.*(umi|xiaomi-sm8250-common|sm8250-xiaomi-umi).*(\.dtb|\.dtbo)$' artifacts/all_dtb_paths.txt > artifacts/umi_primary_dtb_paths.txt || true
+
+          # fallback family matching if strict match is empty
+          if [ ! -s artifacts/umi_primary_dtb_paths.txt ]; then
+            grep -Ei 'umi|sm8250|lmi|cmi|apollo|thyme|alioth' artifacts/all_dtb_paths.txt > artifacts/umi_primary_dtb_paths.txt || true
           fi
+
+          cp -v out/arch/arm64/boot/Image artifacts/umi_bundle/ || true
+          cp -v out/arch/arm64/boot/Image.gz artifacts/umi_bundle/ || true
+          cp -v target/porting/phase2/summary.txt artifacts/umi_bundle/ || true
+
+          dtb_count=0
+          if [ -s artifacts/umi_primary_dtb_paths.txt ]; then
+            while IFS= read -r f; do
+              [ -f "$f" ] || continue
+              cp -v "$f" artifacts/ || true
+              cp -v "$f" artifacts/umi_bundle/ || true
+              dtb_count=$((dtb_count+1))
+            done < artifacts/umi_primary_dtb_paths.txt
+          fi
+
+          {
+            echo "device=${{ github.event.inputs.device }}"
+            echo "umi_bundle_dtb_count=$dtb_count"
+          } > artifacts/umi_bundle/pack-info.txt
+
+          (cd artifacts/umi_bundle && zip -r ../phase2-umi-focused-package.zip .)
 
       - name: Upload artifacts
         if: always()
