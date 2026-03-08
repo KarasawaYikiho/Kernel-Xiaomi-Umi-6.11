@@ -16,9 +16,11 @@
 - Workflow 会自动：
   - 拉取内核仓库
   - 安装编译依赖
-  - 自动检测 `umi_defconfig`（若存在优先使用）
+  - 严格检测 `umi_defconfig`（不存在则直接失败，避免编出“假 umi 包”）
   - 编译 `Image.gz` / `dtbs` / `modules`
-  - 上传构建产物
+  - 产出两类 artifacts：
+    - `umi-kernel-slim-*`（内核镜像 + 关键 dtb）
+    - `umi-kernel-full-*`（`modules` + `out` 压缩包，体积通常显著更大）
 
 ## 使用方法
 
