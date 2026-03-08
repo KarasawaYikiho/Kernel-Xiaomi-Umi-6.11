@@ -12,6 +12,7 @@
 - Phase 2.4：迁移脚本升级为 include-aware（递归解析并复制 dts/dtsi 引用依赖），并输出 `seed_dts.txt` / `included_dts.txt` 供结构验收。
 - Phase 2.5：新增 `tools/porting/build_dtb_manifest.py`，优先依据“已迁移 dts 清单”生成目标 dtb manifest，减少 umi 包误收录。
 - Phase 2.6：新增 `flash-readiness` 结构评估输出（`pack-info.txt` + `flash-readiness.txt`），用于无刷机阶段的候选门槛判断。
+- Phase 2.7：收紧 dtb 选择回退规则与 manifest 过滤，优先避免误收录非 umi/sm8250-xiaomi 板级 dtb。
 - 完成 Phase 0：新增 `porting/baseline-lock.json` 与 `porting/BRANCHING.md`。
 - 完成 Phase 1：新增 `porting/classification-phase1.md`，并将盘点与分类结论固化。
 - Phase 2.1：修复 dts 迁移逻辑（递归扫描 + 目标路径映射 + copied_dts 清单）。

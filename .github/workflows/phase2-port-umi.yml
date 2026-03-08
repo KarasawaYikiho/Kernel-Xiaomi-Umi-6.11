@@ -92,9 +92,9 @@ jobs:
               | grep -Eiv 'rumi|lumia|sony' > artifacts/umi_primary_dtb_paths.txt || true
           fi
 
-          # fallback 2: family matching with denylist
+          # fallback 2: keep it strict to avoid false positives from unrelated boards
           if [ ! -s artifacts/umi_primary_dtb_paths.txt ]; then
-            grep -Ei '(umi|sm8250|lmi|cmi|apollo|thyme|alioth).*(\.dtb|\.dtbo)$' artifacts/all_dtb_paths.txt \
+            grep -Ei '(sm8250-xiaomi|umi-sm8250|xiaomi-sm8250-common).*(\.dtb|\.dtbo)$' artifacts/all_dtb_paths.txt \
               | grep -Eiv 'rumi|lumia|sony|hdk|mtp' > artifacts/umi_primary_dtb_paths.txt || true
           fi
 

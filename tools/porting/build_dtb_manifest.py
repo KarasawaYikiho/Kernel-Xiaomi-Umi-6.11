@@ -5,8 +5,8 @@ import re
 COPIED = Path("target/porting/phase2/copied_dts.txt")
 OUT = Path("artifacts/target_dtb_manifest.txt")
 
-ALLOW = re.compile(r"(umi|sm8250|xiaomi|lmi|cmi|apollo|alioth|thyme)", re.I)
-DENY = re.compile(r"(rumi|lumia|sony|hdk|mtp)", re.I)
+ALLOW = re.compile(r"(sm8250-xiaomi|umi-sm8250|xiaomi-sm8250-common|umi|sm8250)", re.I)
+DENY = re.compile(r"(rumi|lumia|sony|hdk|mtp|edo|pdx)", re.I)
 
 
 def to_dtb_name(path_str: str) -> str | None:
