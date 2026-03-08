@@ -28,6 +28,10 @@ on:
         required: true
         type: boolean
         default: false
+      min_zip_mb:
+        description: "Minimum expected flashable zip size in MB (quality gate)"
+        required: true
+        default: "200"
 
 jobs:
   build:
@@ -98,10 +102,50 @@ jobs:
             bash build.sh "${{ github.event.inputs.device }}"
           fi
 
-      - name: Collect artifacts
+      - name: Validate output package
+        run: |
+          shopt -s nullglob
+          zips=(kernel/*.zip)
+          if [ ${#zips[@]} -eq 0 ]; then
+            echo "[ERROR] No flashable zip generated in kernel/*.zip"
+            exit 1
+          fi
+
+          target_zip=""
+          for z in "${zips[@]}"; do
+            base=$(basename "$z")
+            if echo "$base" | grep -qi "_${{ github.event.inputs.device }}_"; then
+              target_zip="$z"
+              break
+            fi
+          done
+
+          if [ -z "$target_zip" ]; then
+            echo "[ERROR] No zip matched target device: ${{ github.event.inputs.device }}"
+            printf '%s\n' "${zips[@]}"
+            exit 1
+          fi
+
+          bytes=$(stat -c%s "$target_zip")
+          mb=$((bytes / 1024 / 1024))
+          min_mb=${{ github.event.inputs.min_zip_mb }}
+
+          echo "Selected zip: $target_zip"
+          echo "Size: ${mb}MB (${bytes} bytes), threshold: ${min_mb}MB"
+
+          if [ "$mb" -lt "$min_mb" ]; then
+            echo "[ERROR] Zip size below threshold; artifact considered invalid."
+            exit 1
+          fi
+
+          mkdir -p artifacts
+          cp -v "$target_zip" artifacts/
+          printf "zip=%s\nsize_mb=%s\nsize_bytes=%s\n" "$(basename "$target_zip")" "$mb" "$bytes" > artifacts/build-metadata.txt
+
+      - name: Collect debug artifacts
+        if: always()
         run: |
           mkdir -p artifacts
-          cp -v kernel/*.zip artifacts/ || true
           cp -v kernel/out/.config artifacts/ || true
           cp -v kernel/out/arch/arm64/boot/Image artifacts/ || true
           cp -v kernel/out/arch/arm64/boot/dtb artifacts/ || true

@@ -18,7 +18,11 @@ Workflow：`.github/workflows/build-umi-kernel.yml`
    - 检查 `Makefile`
    - 检查 `${device}_defconfig` 是否存在
    - 输出内核版本（若 `<=5` 给警告，但继续构建）
-4. 上传产物：`kernel/*.zip` + 关键中间文件
+4. 构建后质量门禁：
+   - 必须生成目标设备 zip（文件名含 `_${device}_`）
+   - zip 体积必须 >= `min_zip_mb`（默认 200MB，可调）
+   - 不达标直接失败，避免“成功但产物错误”
+5. 上传产物：通过门禁的 zip + 调试中间文件 + metadata
 
 ## 使用
 
@@ -27,12 +31,14 @@ Workflow：`.github/workflows/build-umi-kernel.yml`
 - `kernel_branch`：分支
 - `device`：默认 `umi`
 - `ksu`：是否启用 KernelSU
+- `min_zip_mb`：产物最小体积阈值（默认 200）
 
 默认已填：
 - `https://github.com/SO-TS/android_kernel_xiaomi_sm8250.git`
 - `android16-aptusitu`
 - `umi`
 - `ksu=false`
+- `min_zip_mb=200`
 
 ## 备注
 
