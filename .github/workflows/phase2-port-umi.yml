@@ -68,7 +68,14 @@ jobs:
           cp -v out/.config artifacts/ || true
           cp -v out/arch/arm64/boot/Image artifacts/ || true
           cp -v out/arch/arm64/boot/Image.gz artifacts/ || true
+
+          # full dtb dump (for debugging)
           find out/arch/arm64/boot/dts -type f \( -name '*.dtb' -o -name '*.dtbo' \) -exec cp -v {} artifacts/ \; || true
+
+          # focused list for umi/sm8250 family
+          find out/arch/arm64/boot/dts -type f \( -name '*.dtb' -o -name '*.dtbo' \) \
+            | grep -Ei 'umi|sm8250|lmi|cmi|apollo|thyme|alioth' \
+            > artifacts/umi_dtb_list.txt || true
 
       - name: Upload artifacts
         if: always()

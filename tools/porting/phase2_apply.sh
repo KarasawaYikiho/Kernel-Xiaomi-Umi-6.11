@@ -11,7 +11,9 @@ DEVICE="${3:-umi}"
 
 log() { echo "[phase2] $*"; }
 
-mkdir -p "$DST_DIR/porting/phase2"
+PORT_DIR="$DST_DIR/porting/phase2"
+mkdir -p "$PORT_DIR"
+: > "$PORT_DIR/copied_dts.txt"
 
 # 1) defconfig migration (mandatory)
 SRC_DEF="$SRC_DIR/arch/arm64/configs/${DEVICE}_defconfig"
@@ -25,37 +27,67 @@ else
   exit 1
 fi
 
-# 2) dts migration candidates (best-effort)
-# try common qcom/vendor locations from old tree
-CANDIDATE_PATHS=(
+# 2) dts/dtsi migration (recursive + path fallback)
+# search roots in source
+SRC_ROOTS=(
   "arch/arm64/boot/dts/vendor/qcom"
   "arch/arm64/boot/dts/qcom"
 )
 
+# destination priority roots (use existing first)
+DST_ROOTS=(
+  "arch/arm64/boot/dts/qcom"
+  "arch/arm64/boot/dts/vendor/qcom"
+)
+
+select_dst_root() {
+  for r in "${DST_ROOTS[@]}"; do
+    if [[ -d "$DST_DIR/$r" ]]; then
+      echo "$r"
+      return 0
+    fi
+  done
+  # fallback create qcom path
+  mkdir -p "$DST_DIR/arch/arm64/boot/dts/qcom"
+  echo "arch/arm64/boot/dts/qcom"
+}
+
+DST_ROOT="$(select_dst_root)"
+
 copied=0
-for rel in "${CANDIDATE_PATHS[@]}"; do
-  s="$SRC_DIR/$rel"
-  d="$DST_DIR/$rel"
-  if [[ -d "$s" && -d "$d" ]]; then
-    log "scan DTS in $s"
-    while IFS= read -r f; do
-      b="$(basename "$f")"
-      if [[ "$b" =~ umi|sm8250|lmi|cmi|apollo|thyme|alioth ]]; then
-        cp -f "$f" "$d/$b"
-        echo "$rel/$b" >> "$DST_DIR/porting/phase2/copied_dts.txt"
-        copied=$((copied+1))
-      fi
-    done < <(find "$s" -maxdepth 1 -type f \( -name '*.dts' -o -name '*.dtsi' \))
+for rel in "${SRC_ROOTS[@]}"; do
+  sroot="$SRC_DIR/$rel"
+  if [[ ! -d "$sroot" ]]; then
+    continue
   fi
+
+  log "scan DTS recursively in $sroot"
+  while IFS= read -r f; do
+    b="$(basename "$f")"
+    if [[ "$b" =~ umi|sm8250|lmi|cmi|apollo|thyme|alioth ]]; then
+      # keep relative subtree under chosen target root
+      subdir="$(dirname "${f#$sroot/}")"
+      [[ "$subdir" == "." ]] && subdir=""
+      mkdir -p "$DST_DIR/$DST_ROOT/$subdir"
+      cp -f "$f" "$DST_DIR/$DST_ROOT/$subdir/$b"
+      echo "$DST_ROOT/$subdir/$b" >> "$PORT_DIR/copied_dts.txt"
+      copied=$((copied+1))
+    fi
+  done < <(find "$sroot" -type f \( -name '*.dts' -o -name '*.dtsi' \))
 done
+
+if [[ "$copied" -eq 0 ]]; then
+  rm -f "$PORT_DIR/copied_dts.txt"
+fi
 
 log "dts copied count: $copied"
 
-# 3) simple report
+# 3) report
 {
   echo "device=$DEVICE"
   echo "defconfig=$DST_DEF"
+  echo "dst_dts_root=$DST_ROOT"
   echo "dts_copied=$copied"
-} > "$DST_DIR/porting/phase2/summary.txt"
+} > "$PORT_DIR/summary.txt"
 
 log "phase2 apply done"
