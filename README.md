@@ -66,6 +66,9 @@ Inputs:
 - `tools/porting/evaluate_artifact.py` — flash-readiness heuristic
 - `tools/porting/build_phase2_report.py` — consolidated phase2 summary
 - `tools/porting/README.md` — full script index and execution order
+- `tools/porting/prepare_phase2_sources.sh` — source/target clone orchestrator
+- `tools/porting/check_target_kernel_version.sh` — target kernel version probe
+- `tools/porting/apply_phase2_migration.sh` — phase2 migration wrapper
 - `tools/porting/run_phase2_build.sh` — kernel build orchestrator (defconfig/build + exit snapshot)
 - `tools/porting/collect_phase2_artifacts.sh` — artifact collection + umi-focused packaging orchestrator
 - `tools/porting/build_anykernel_candidate.sh` — AnyKernel candidate packaging orchestrator

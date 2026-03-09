@@ -44,17 +44,22 @@ jobs:
 
       - name: Clone source and target
         run: |
-          git clone --depth=1 --branch "${{ github.event.inputs.source_branch }}" "${{ github.event.inputs.source_repo }}" source
-          git clone --depth=1 --branch "${{ github.event.inputs.target_branch }}" "${{ github.event.inputs.target_repo }}" target
+          chmod +x tools/porting/prepare_phase2_sources.sh
+          ./tools/porting/prepare_phase2_sources.sh \
+            "${{ github.event.inputs.source_repo }}" \
+            "${{ github.event.inputs.source_branch }}" \
+            "${{ github.event.inputs.target_repo }}" \
+            "${{ github.event.inputs.target_branch }}"
 
       - name: Check target kernel major
         run: |
-          grep -E '^(VERSION|PATCHLEVEL|SUBLEVEL)\s*=\s*' target/Makefile
+          chmod +x tools/porting/check_target_kernel_version.sh
+          ./tools/porting/check_target_kernel_version.sh
 
       - name: Apply Phase2 migration
         run: |
-          chmod +x tools/porting/phase2_apply.sh
-          ./tools/porting/phase2_apply.sh "$PWD/source" "$PWD/target" "${{ github.event.inputs.device }}"
+          chmod +x tools/porting/apply_phase2_migration.sh
+          ./tools/porting/apply_phase2_migration.sh "${{ github.event.inputs.device }}"
 
       - name: Build target kernel (attempt)
         env:
