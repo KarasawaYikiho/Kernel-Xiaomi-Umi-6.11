@@ -23,10 +23,20 @@ rc3=0
 if [ -s artifacts/target_dtb_manifest.txt ]; then
   while IFS= read -r dtb; do
     [ -n "$dtb" ] || continue
-    make -C target O=$PWD/out LLVM=1 LLVM_IAS=1 "arch/arm64/boot/dts/qcom/${dtb}" >> artifacts/make-target-dtbs.log 2>&1
-    r=$?
-    if [ "$r" -ne 0 ]; then
-      rc3=$r
+
+    # try multiple canonical target forms for better kernel-tree compatibility
+    ok=1
+    for t in "$dtb" "qcom/$dtb" "arch/arm64/boot/dts/qcom/$dtb"; do
+      make -C target O=$PWD/out LLVM=1 LLVM_IAS=1 "$t" >> artifacts/make-target-dtbs.log 2>&1
+      r=$?
+      if [ "$r" -eq 0 ]; then
+        ok=0
+        break
+      fi
+    done
+
+    if [ "$ok" -ne 0 ]; then
+      rc3=2
     fi
   done < artifacts/target_dtb_manifest.txt
 else
