@@ -29,6 +29,17 @@ else
   exit 1
 fi
 
+# defconfig compatibility guards for 5+ target baseline
+set_kconfig_n() {
+  local cfg="$1"
+  sed -i -E "/^${cfg}=.*/d" "$DST_DEF"
+  sed -i -E "/^# ${cfg} is not set$/d" "$DST_DEF"
+  echo "# ${cfg} is not set" >> "$DST_DEF"
+}
+
+# qcom-spmi-adc5 mismatch on current target baseline (undeclared ADC5_* identifiers)
+set_kconfig_n "CONFIG_QCOM_SPMI_ADC5"
+
 # 2) dts/dtsi migration (recursive + include-aware)
 SRC_ROOTS=(
   "arch/arm64/boot/dts/vendor/qcom"
@@ -170,6 +181,7 @@ fi
 log "seed dts count: $seed_count"
 log "dts/dtsi copied count: $copied (dts=$copied_dts, dtsi=$copied_dtsi)"
 log "dt-bindings headers copied: $bind_copied"
+log "defconfig guard applied: CONFIG_QCOM_SPMI_ADC5=n"
 
 {
   echo "device=$DEVICE"
