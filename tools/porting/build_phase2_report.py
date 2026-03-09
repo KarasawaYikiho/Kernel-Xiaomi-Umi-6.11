@@ -25,6 +25,8 @@ def main() -> int:
     dtb = parse_kv(ART / "dtb-postcheck.txt")
     anyk = parse_kv(ART / "anykernel-info.txt")
     missa = parse_kv(ART / "dtb-miss-analysis.txt")
+    bexit = parse_kv(ART / "build-exit.txt")
+    complete = parse_kv(ART / "artifact-completeness.txt")
 
     # derive a simple decision hint for next step automation
     flash_status = flash.get('status', 'unknown')
@@ -39,6 +41,8 @@ def main() -> int:
     lines = [
         "phase2_report=1",
         f"device={pack.get('device', summary.get('device', 'unknown'))}",
+        f"defconfig_rc={bexit.get('defconfig_rc', 'n/a')}",
+        f"build_rc={bexit.get('build_rc', 'n/a')}",
         f"dts_copied={summary.get('dts_copied', '0')}",
         f"dts_only_copied={summary.get('dts_only_copied', '0')}",
         f"dtsi_only_copied={summary.get('dtsi_only_copied', '0')}",
@@ -55,6 +59,8 @@ def main() -> int:
         f"anykernel_dtb_source={anyk.get('dtb_source', '')}",
         f"miss_bucket_total={missa.get('bucket_total', '0')}",
         f"miss_top_buckets={missa.get('top_buckets', '')}",
+        f"artifact_completeness={complete.get('status', 'unknown')}",
+        f"required_missing={complete.get('required_missing', 'n/a')}",
         f"next_action={next_action}",
     ]
 
