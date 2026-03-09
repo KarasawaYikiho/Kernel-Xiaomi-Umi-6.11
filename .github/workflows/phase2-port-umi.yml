@@ -1,5 +1,9 @@
 name: Phase2 Port UMI (SO-TS -> 5+)
 
+concurrency:
+  group: phase2-umi-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   workflow_dispatch:
     inputs:
@@ -27,6 +31,7 @@ on:
 jobs:
   port-and-build:
     runs-on: ubuntu-24.04
+    timeout-minutes: 90
     steps:
       - name: Checkout orchestrator repo
         uses: actions/checkout@v4
