@@ -24,19 +24,11 @@ if [ -s artifacts/target_dtb_manifest.txt ]; then
   while IFS= read -r dtb; do
     [ -n "$dtb" ] || continue
 
-    # prefer qcom/<dtb> target form used by current target tree
-    ok=1
-    for t in "qcom/$dtb" "$dtb"; do
-      make -C target O=$PWD/out LLVM=1 LLVM_IAS=1 "$t" >> artifacts/make-target-dtbs.log 2>&1
-      r=$?
-      if [ "$r" -eq 0 ]; then
-        ok=0
-        break
-      fi
-    done
-
-    if [ "$ok" -ne 0 ]; then
-      rc3=2
+    # use canonical target form used by this target tree
+    make -C target O=$PWD/out LLVM=1 LLVM_IAS=1 "qcom/$dtb" >> artifacts/make-target-dtbs.log 2>&1
+    r=$?
+    if [ "$r" -ne 0 ]; then
+      rc3=$r
     fi
   done < artifacts/target_dtb_manifest.txt
 else

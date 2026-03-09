@@ -175,7 +175,7 @@ if [[ -d "$SRC_BIND" ]]; then
     mkdir -p "$(dirname "$dst")"
     cp -f "$h" "$dst"
     bind_copied=$((bind_copied+1))
-  done < <(find "$SRC_BIND" -type f \( -name 'qcom*.h' -o -name '*kona*.h' -o -name '*sm8250*.h' \))
+  done < <(find "$SRC_BIND" -type f -name '*.h')
 fi
 
 log "seed dts count: $seed_count"
