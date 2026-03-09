@@ -67,6 +67,7 @@ Inputs:
 - `tools/porting/build_phase2_report.py` — consolidated phase2 summary
 - `tools/porting/README.md` — full script index and execution order
 - `tools/porting/collect_phase2_artifacts.sh` — artifact collection + umi-focused packaging orchestrator
+- `tools/porting/build_anykernel_candidate.sh` — AnyKernel candidate packaging orchestrator
 - `tools/porting/run_postprocess_suite.sh` — one-shot postprocess orchestrator
 
 ## Artifact Quick Read (Phase2)

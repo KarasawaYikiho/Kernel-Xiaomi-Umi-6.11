@@ -18,7 +18,9 @@ This directory contains the automation chain used by `phase2-port-umi.yml`.
    - Generates `artifacts/phase2-report.txt`.
 7. `collect_phase2_artifacts.sh`
    - Collects build outputs, resolves primary DTB candidates, packages umi bundle, and writes flash-readiness inputs.
-8. Post-processing suite:
+8. `build_anykernel_candidate.sh`
+   - Packages AnyKernel3 candidate zip and writes `artifacts/anykernel-info.txt`.
+9. Post-processing suite:
    - `check_artifact_completeness.py`
    - `suggest_next_focus.py`
    - `extract_build_errors.py`
@@ -37,6 +39,7 @@ This directory contains the automation chain used by `phase2-port-umi.yml`.
 - **CI artifact UX:** `build_artifact_index.py`, `summarize_artifacts_markdown.py`, `build_status_badge_line.py`, `build_artifact_checksums.py`
 - **Automation metrics:** `collect_metrics_json.py`, `check_artifact_completeness.py`, `suggest_next_focus.py`, `extract_build_errors.py`
 - **Build artifact orchestration:** `collect_phase2_artifacts.sh` (collect/package primary artifacts after build)
+- **AnyKernel packaging orchestration:** `build_anykernel_candidate.sh` (builds candidate AnyKernel zip + diagnostics)
 - **Postprocess orchestration:** `run_postprocess_suite.sh` (runs post-build reporting scripts in CI)
 
 ## Local Dry-Run Notes
