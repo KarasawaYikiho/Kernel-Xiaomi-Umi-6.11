@@ -27,6 +27,10 @@ on:
         description: "device codename"
         required: true
         default: "umi"
+      quality_gate_mode:
+        description: "quality gate mode: warn | strict"
+        required: true
+        default: "warn"
 
 jobs:
   port-and-build:
@@ -259,6 +263,11 @@ jobs:
         if: always()
         run: |
           python3 tools/porting/build_artifact_checksums.py || true
+
+      - name: Enforce quality gates
+        if: always()
+        run: |
+          python3 tools/porting/enforce_quality_gates.py "${{ github.event.inputs.quality_gate_mode }}"
 
       - name: Upload artifacts
         if: always()

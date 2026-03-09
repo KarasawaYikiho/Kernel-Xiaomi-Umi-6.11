@@ -1,0 +1,14 @@
+{
+  "required_files": [
+    "artifacts/build-exit.txt",
+    "artifacts/phase2-report.txt",
+    "artifacts/run-meta.txt",
+    "artifacts/artifact-completeness.txt"
+  ],
+  "warn_files": [
+    "artifacts/build-error-summary.txt",
+    "artifacts/phase2-metrics.json",
+    "artifacts/status-badge-line.txt",
+    "artifacts/artifact-sha256.txt"
+  ]
+}
