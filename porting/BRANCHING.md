@@ -8,3 +8,11 @@
 - `port/hotfix-*`: urgent CI/packaging fixes
 
 Rule: merge phase branches into `main` only after CI artifact sanity checks.
+
+## Merge Checklist (Recommended)
+
+- [ ] Workflow run completed and artifacts uploaded
+- [ ] `phase2-report.txt` is present and readable
+- [ ] `build-exit.txt` has expected status for this phase
+- [ ] `CHANGELOG.md` updated for meaningful changes
+- [ ] README/docs updated if behavior or outputs changed

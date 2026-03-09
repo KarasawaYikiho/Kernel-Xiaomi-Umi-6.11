@@ -14,6 +14,19 @@ This repository provides GitHub Actions workflows and helper scripts to:
 
 ## Workflows
 
+### Quick Start (Phase2)
+
+Run `phase2-port-umi.yml` with default inputs first, then review artifacts in this order:
+
+1. `artifacts/phase2-report.txt`
+2. `artifacts/build-exit.txt`
+3. `artifacts/build-error-summary.txt`
+4. `artifacts/anykernel-info.txt`
+5. `artifacts/next-focus.txt`
+
+This gives a fast pass/fail + next-action loop without digging through full logs first.
+
+
 ### 1) build-umi-kernel.yml
 Reference-style cloud build flow:
 1. install dependencies + setup ccache
@@ -86,6 +99,12 @@ After each `phase2-port-umi.yml` run, check in order:
 
 - Porting docs index: `porting/README.md`
 - Tooling script index: `tools/porting/README.md`
+
+## Style Notes
+
+- This repo is an **orchestrator**, not a full kernel source tree.
+- Prioritize reproducible CI outputs over one-off local fixes.
+- Keep new diagnostics under `tools/porting/` and document them in `tools/porting/README.md`.
 
 ## License
 

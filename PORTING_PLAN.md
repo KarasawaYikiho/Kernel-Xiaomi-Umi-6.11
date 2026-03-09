@@ -7,6 +7,13 @@
 - 功能参考（低版本）：https://github.com/SO-TS/android_kernel_xiaomi_sm8250
 - 5+ 候选基线： https://github.com/yefxx/xiaomi-umi-linux-kernel
 
+## 当前状态快照（2026-03-09）
+
+- Phase 0：完成
+- Phase 1：完成
+- Phase 2：进行中（已具备自动迁移 + 自动诊断 + 候选打包）
+- 当前重点：提升构建通过率与 DTB 命中质量
+
 ## 实施阶段
 
 ### Phase 0 - 基线冻结（已完成）
