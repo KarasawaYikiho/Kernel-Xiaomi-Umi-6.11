@@ -31,6 +31,7 @@
 - workflow 接入 markdown 摘要生成步骤，README 补充对应产物入口。
 - 新增 `tools/porting/validate_phase2_report.py`，对 `phase2-report.txt` 做关键字段存在性校验。
 - workflow 接入报告校验步骤，输出 `phase2-report-validate.txt`，便于快速发现报告结构回归。
+- 新增 `tools/porting/collect_metrics_json.py`，导出 `artifacts/phase2-metrics.json` 结构化指标，便于自动化消费与仪表板接入。
 - 构建步骤新增 `build-exit.txt` 与 `make-defconfig.log` / `make-build.log` 输出：即使构建失败也可在同次运行产物中直接定位失败阶段。
 
 ## 2026-03-08

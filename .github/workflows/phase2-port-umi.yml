@@ -240,6 +240,11 @@ jobs:
         run: |
           python3 tools/porting/validate_phase2_report.py || true
 
+      - name: Export metrics json
+        if: always()
+        run: |
+          python3 tools/porting/collect_metrics_json.py || true
+
       - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4
