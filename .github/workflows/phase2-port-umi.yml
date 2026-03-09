@@ -250,6 +250,11 @@ jobs:
         run: |
           python3 tools/porting/build_status_badge_line.py || true
 
+      - name: Build artifact checksums
+        if: always()
+        run: |
+          python3 tools/porting/build_artifact_checksums.py || true
+
       - name: Upload artifacts
         if: always()
         uses: actions/upload-artifact@v4

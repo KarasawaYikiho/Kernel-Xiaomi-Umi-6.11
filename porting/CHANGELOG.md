@@ -33,6 +33,7 @@
 - workflow 接入报告校验步骤，输出 `phase2-report-validate.txt`，便于快速发现报告结构回归。
 - 新增 `tools/porting/collect_metrics_json.py`，导出 `artifacts/phase2-metrics.json` 结构化指标，便于自动化消费与仪表板接入。
 - 新增 `tools/porting/build_status_badge_line.py`，输出 `artifacts/status-badge-line.txt` 单行状态快照，便于快速查看本次运行结论。
+- 新增 `tools/porting/build_artifact_checksums.py`，输出 `artifacts/artifact-sha256.txt`，用于产物一致性校验与追溯。
 - 构建步骤新增 `build-exit.txt` 与 `make-defconfig.log` / `make-build.log` 输出：即使构建失败也可在同次运行产物中直接定位失败阶段。
 
 ## 2026-03-08
