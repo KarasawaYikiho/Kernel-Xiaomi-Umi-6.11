@@ -106,6 +106,11 @@ After each `phase2-port-umi.yml` run, check in order:
 - Prioritize reproducible CI outputs over one-off local fixes.
 - Keep new diagnostics under `tools/porting/` and document them in `tools/porting/README.md`.
 
+## Contributing
+
+- Contribution guide: `CONTRIBUTING.md`
+- Code owners: `.github/CODEOWNERS`
+
 ## License
 
 See `LICENSE`.
