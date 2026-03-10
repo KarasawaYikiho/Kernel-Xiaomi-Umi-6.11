@@ -157,29 +157,55 @@ SRC_ROOTS=(
   "arch/arm64/boot/dts/qcom"
 )
 
-DST_ROOTS=(
-  "arch/arm64/boot/dts/qcom"
-  "arch/arm64/boot/dts/vendor/qcom"
-)
-
-select_dst_root() {
-  for r in "${DST_ROOTS[@]}"; do
-    if [[ -d "$DST_DIR/$r" ]]; then
-      echo "$r"
+select_existing_root() {
+  local cand
+  for cand in "$@"; do
+    if [[ -d "$DST_DIR/$cand" ]]; then
+      echo "$cand"
       return 0
     fi
   done
-  mkdir -p "$DST_DIR/arch/arm64/boot/dts/qcom"
-  echo "arch/arm64/boot/dts/qcom"
+  return 1
 }
 
-DST_ROOT="$(select_dst_root)"
+pick_dst_root_for() {
+  local src_rel="$1"
+  local picked=""
+
+  case "$src_rel" in
+    arch/arm64/boot/dts/vendor/xiaomi)
+      picked="$(select_existing_root \
+        "arch/arm64/boot/dts/vendor/xiaomi" \
+        "arch/arm64/boot/dts/vendor/qcom" \
+        "arch/arm64/boot/dts/qcom" || true)"
+      [[ -n "$picked" ]] || picked="arch/arm64/boot/dts/vendor/xiaomi"
+      ;;
+    arch/arm64/boot/dts/vendor/qcom)
+      picked="$(select_existing_root \
+        "arch/arm64/boot/dts/vendor/qcom" \
+        "arch/arm64/boot/dts/qcom" \
+        "arch/arm64/boot/dts/vendor/xiaomi" || true)"
+      [[ -n "$picked" ]] || picked="arch/arm64/boot/dts/vendor/qcom"
+      ;;
+    *)
+      picked="$(select_existing_root \
+        "arch/arm64/boot/dts/qcom" \
+        "arch/arm64/boot/dts/vendor/qcom" \
+        "arch/arm64/boot/dts/vendor/xiaomi" || true)"
+      [[ -n "$picked" ]] || picked="arch/arm64/boot/dts/qcom"
+      ;;
+  esac
+
+  mkdir -p "$DST_DIR/$picked"
+  echo "$picked"
+}
 
 declare -A COPIED
 
 do_copy() {
   local src_file="$1"
   local src_root="$2"
+  local dst_root="$3"
 
   [[ -f "$src_file" ]] || return 0
   if [[ -n "${COPIED[$src_file]:-}" ]]; then
@@ -192,13 +218,13 @@ do_copy() {
   [[ "$subdir" == "." ]] && subdir=""
   base="$(basename "$src_file")"
 
-  dst_dir="$DST_DIR/$DST_ROOT/$subdir"
+  dst_dir="$DST_DIR/$dst_root/$subdir"
   mkdir -p "$dst_dir"
   dst_file="$dst_dir/$base"
   cp -f "$src_file" "$dst_file"
 
   COPIED[$src_file]=1
-  echo "$DST_ROOT/$subdir/$base" >> "$PORT_DIR/copied_dts.txt"
+  echo "$dst_root/$subdir/$base" >> "$PORT_DIR/copied_dts.txt"
 }
 
 parse_includes() {
@@ -211,6 +237,7 @@ parse_includes() {
 copy_with_includes() {
   local seed="$1"
   local src_root="$2"
+  local dst_root="$3"
 
   # BFS queue in plain bash
   local queue_file
@@ -219,7 +246,7 @@ copy_with_includes() {
 
   while IFS= read -r cur; do
     [[ -f "$cur" ]] || continue
-    do_copy "$cur" "$src_root"
+    do_copy "$cur" "$src_root" "$dst_root"
 
     while IFS= read -r inc; do
       [[ -n "$inc" ]] || continue
@@ -243,18 +270,24 @@ copy_with_includes() {
 }
 
 seed_count=0
+dst_roots_used=""
 for rel in "${SRC_ROOTS[@]}"; do
   sroot="$SRC_DIR/$rel"
   [[ -d "$sroot" ]] || continue
+  droot="$(pick_dst_root_for "$rel")"
+  case ",$dst_roots_used," in
+    *",$droot,"*) ;;
+    *) dst_roots_used="${dst_roots_used:+$dst_roots_used,}$droot" ;;
+  esac
 
-  log "scan DTS recursively in $sroot"
+  log "scan DTS recursively in $sroot -> $droot"
   while IFS= read -r f; do
     b="$(basename "$f")"
 
     # strictly prefer Xiaomi SM8250/UMI family and avoid obvious false positives
     if [[ "$b" =~ (sm8250|umi|xiaomi|kona|lmi|cmi|apollo|alioth|thyme) ]] && [[ ! "$b" =~ (rumi|lumia|sony|hdk|mtp|pdx|edo) ]]; then
       echo "$f" >> "$PORT_DIR/seed_dts.txt"
-      copy_with_includes "$f" "$sroot"
+      copy_with_includes "$f" "$sroot" "$droot"
       seed_count=$((seed_count+1))
     fi
   done < <(find "$sroot" -type f \( -name '*.dts' -o -name '*.dtsi' \))
@@ -297,7 +330,7 @@ log "defconfig guard applied: CONFIG_QCOM_SPMI_ADC5=n"
 {
   echo "device=$DEVICE"
   echo "defconfig=$DST_DEF"
-  echo "dst_dts_root=$DST_ROOT"
+  echo "dst_dts_roots=$dst_roots_used"
   echo "seed_dts_count=$seed_count"
   echo "dts_copied=$copied"
   echo "dts_only_copied=$copied_dts"
