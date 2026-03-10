@@ -32,8 +32,18 @@ def main() -> int:
     flash_status = flash.get('status', 'unknown')
     anykernel_ok = anyk.get('anykernel_ok', 'no')
     hit_ratio = dtb.get('hit_ratio', '0.000')
+    def_rc = bexit.get('defconfig_rc', 'n/a')
+    build_rc = bexit.get('build_rc', 'n/a')
+    dtbs_rc = bexit.get('dtbs_rc', 'n/a')
+
     next_action = 'collect-more-data'
-    if flash_status == 'candidate' and anykernel_ok == 'yes':
+    if def_rc not in ('0', 'n/a'):
+        next_action = 'fix-defconfig-errors'
+    elif build_rc not in ('0', 'n/a'):
+        next_action = 'fix-build-errors'
+    elif dtbs_rc not in ('0', 'n/a'):
+        next_action = 'fix-dtb-build-errors'
+    elif flash_status == 'candidate' and anykernel_ok == 'yes':
         next_action = 'ready-for-action-test'
     elif flash_status == 'candidate' and anykernel_ok != 'yes':
         next_action = 'fix-anykernel-packaging'

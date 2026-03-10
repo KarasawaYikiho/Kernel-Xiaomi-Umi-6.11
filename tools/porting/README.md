@@ -51,6 +51,7 @@ This directory contains the automation chain used by `phase2-port-umi.yml`.
 ## Local Dry-Run Notes
 
 Most scripts read from `artifacts/` and write back to `artifacts/`.
+`artifacts/` is treated as build output and should stay untracked in git (use CI upload/download for sharing run results).
 A typical local validation flow after obtaining logs/artifacts is:
 
 ```bash
