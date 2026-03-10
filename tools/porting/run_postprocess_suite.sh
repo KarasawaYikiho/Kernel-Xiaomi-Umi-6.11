@@ -14,3 +14,4 @@ python3 tools/porting/validate_phase2_report.py || true
 python3 tools/porting/collect_metrics_json.py || true
 python3 tools/porting/build_status_badge_line.py || true
 python3 tools/porting/build_artifact_checksums.py || true
+python3 tools/porting/build_action_validation_checklist.py || true
