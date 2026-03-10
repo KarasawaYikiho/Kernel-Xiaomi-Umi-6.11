@@ -11,6 +11,7 @@ OUT="$ART/bootimg-build.txt"
 
 kernel_path=""
 ramdisk_path="${BOOTIMG_RAMDISK_PATH:-}"
+ramdisk_url="${BOOTIMG_RAMDISK_URL:-}"
 dtb_path="${BOOTIMG_DTB_PATH:-}"
 mkbootimg_cmd=""
 
@@ -31,6 +32,15 @@ if [[ -z "$ramdisk_path" ]]; then
   done
 fi
 
+# optional download path for ramdisk
+if [[ -z "$ramdisk_path" && -n "$ramdisk_url" ]]; then
+  if command -v curl >/dev/null 2>&1; then
+    curl -L --fail --retry 3 "$ramdisk_url" -o "$ART/ramdisk.cpio.gz" && ramdisk_path="$ART/ramdisk.cpio.gz" || true
+  elif command -v wget >/dev/null 2>&1; then
+    wget -O "$ART/ramdisk.cpio.gz" "$ramdisk_url" && ramdisk_path="$ART/ramdisk.cpio.gz" || true
+  fi
+fi
+
 # dtb (optional for newer header versions but preferred)
 if [[ -z "$dtb_path" && -s "$ART/umi_primary_dtb_paths.txt" ]]; then
   cand="$(head -n1 "$ART/umi_primary_dtb_paths.txt" || true)"
@@ -40,6 +50,10 @@ fi
 # mkbootimg tool detection
 if command -v mkbootimg >/dev/null 2>&1; then
   mkbootimg_cmd="mkbootimg"
+elif [[ -f source/tools/mkbootimg/mkbootimg.py ]]; then
+  mkbootimg_cmd="python3 source/tools/mkbootimg/mkbootimg.py"
+elif [[ -f target/tools/mkbootimg/mkbootimg.py ]]; then
+  mkbootimg_cmd="python3 target/tools/mkbootimg/mkbootimg.py"
 elif python3 - <<'PY'
 import importlib.util
 print('ok' if importlib.util.find_spec('mkbootimg') else 'no')

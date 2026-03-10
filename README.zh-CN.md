@@ -74,6 +74,7 @@ Phase2 迁移 + 构建 + 诊断流程：
 - `target_branch`
 - `device`（默认 `umi`）
 - `bootimg_required_bytes`（默认 `268435456`，即 256MiB）
+- `bootimg_ramdisk_url`（可选：用于下载 `ramdisk.cpio.gz`，供 release `boot.img` 构建）
 
 ## 关键脚本
 

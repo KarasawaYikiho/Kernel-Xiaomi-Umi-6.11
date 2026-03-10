@@ -75,6 +75,7 @@ Inputs:
 - `target_branch`
 - `device` (default: `umi`)
 - `bootimg_required_bytes` (default: `268435456`, i.e. 256MiB)
+- `bootimg_ramdisk_url` (optional URL for `ramdisk.cpio.gz` when building release `boot.img`)
 
 ## Key scripts
 

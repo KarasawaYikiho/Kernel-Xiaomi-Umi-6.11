@@ -31,6 +31,10 @@ on:
         description: "required boot.img size in bytes (default 256MiB)"
         required: false
         default: "268435456"
+      bootimg_ramdisk_url:
+        description: "optional URL to fetch ramdisk.cpio.gz for release bootimg build"
+        required: false
+        default: ""
 
 jobs:
   port-and-build:
@@ -38,6 +42,7 @@ jobs:
     timeout-minutes: 90
     env:
       BOOTIMG_REQUIRED_BYTES: ${{ github.event.inputs.bootimg_required_bytes || '268435456' }}
+      BOOTIMG_RAMDISK_URL: ${{ github.event.inputs.bootimg_ramdisk_url || '' }}
     steps:
       - name: Checkout orchestrator repo
         uses: actions/checkout@v4
