@@ -3,8 +3,8 @@
 目标：将 `SO-TS/android_kernel_xiaomi_sm8250`（4.19）里的设备功能与驱动兼容，分批移植到 5+ 内核基线，并保持 GitHub Actions 可持续构建。
 
 仓库最终目标（补充）：
-- 产出 **Release 级、可直接刷入的 `boot.img`**。
-- 相同机型（umi）可通过 Actions 稳定自助编译并产出可刷写工件。
+- 产出 **Release 级、可直接刷入的 `boot.img`**（作为最终交付物，而非仅候选包）。
+- 相同机型（umi）可通过 Actions 稳定自助编译并产出可刷写工件（同 workflow 输入可复现）。
 
 ## 参考源（GitHub）
 
