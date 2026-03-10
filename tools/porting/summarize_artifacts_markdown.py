@@ -29,6 +29,7 @@ def main() -> int:
         f"- Build RC: `{r.get('build_rc', 'n/a')}` (defconfig `{r.get('defconfig_rc', 'n/a')}`)",
         f"- Flash Status: `{r.get('flash_status', 'unknown')}`",
         f"- AnyKernel OK: `{r.get('anykernel_ok', 'no')}`",
+        f"- AnyKernel Validate: `{r.get('anykernel_validate_status', 'unknown')}` ({r.get('anykernel_validate_reason', 'n/a')})",
         f"- Manifest Hit Ratio: `{r.get('manifest_hit_ratio', '0.000')}`",
         f"- Artifact Completeness: `{c.get('status', 'unknown')}`",
         "",
@@ -41,6 +42,7 @@ def main() -> int:
         "- `build-error-summary.txt`",
         "- `dtb-postcheck.txt`",
         "- `anykernel-info.txt`",
+        "- `anykernel-validate.txt`",
     ]
 
     OUT.write_text("\n".join(md) + "\n", encoding="utf-8")

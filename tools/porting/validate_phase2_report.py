@@ -10,6 +10,7 @@ REQ_KEYS = [
     "build_rc",
     "flash_status",
     "anykernel_ok",
+    "anykernel_validate_status",
     "manifest_hit_ratio",
     "next_action",
 ]
