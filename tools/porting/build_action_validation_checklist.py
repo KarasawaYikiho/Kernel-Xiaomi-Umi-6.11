@@ -25,6 +25,7 @@ def main() -> int:
     run_no = meta.get("run_number", "?")
     sha = meta.get("sha", "")
     next_action = report.get("next_action", "collect-more-data")
+    runtime_ready = report.get("runtime_ready", "no")
 
     md = [
         "# Phase2 Runtime Validation Checklist",
@@ -33,6 +34,11 @@ def main() -> int:
         f"- Run: `{run_no}`",
         f"- SHA: `{sha}`",
         f"- next_action: `{next_action}`",
+        f"- runtime_ready: `{runtime_ready}`",
+        "",
+        "## Decision",
+        "- [ ] If `runtime_ready=yes`, proceed with device runtime validation now.",
+        "- [ ] If `runtime_ready=no`, stop and fix report blockers first.",
         "",
         "## Pre-check",
         "- [ ] Confirm battery >= 50% and USB debugging available.",

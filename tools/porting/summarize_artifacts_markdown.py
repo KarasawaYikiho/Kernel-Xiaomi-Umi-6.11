@@ -46,7 +46,7 @@ def main() -> int:
         "- `anykernel-validate.txt`",
     ]
 
-    if r.get('next_action', '') == 'ready-for-action-test':
+    if r.get('runtime_ready', 'no') == 'yes':
         md.append("- `action-validation-checklist.md`")
 
     OUT.write_text("\n".join(md) + "\n", encoding="utf-8")

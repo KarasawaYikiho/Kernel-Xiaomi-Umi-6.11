@@ -52,6 +52,12 @@ This directory contains the automation chain used by `phase2-port-umi.yml`.
 - **Postprocess orchestration:** `run_postprocess_suite.sh` (runs post-build reporting scripts in CI)
 - **Repository sanity checks:** `repo_sanity_check.py` (python compile, workflow script refs, markdown link checks)
 
+## Key Report Signals
+
+- `next_action`: machine-friendly next step (`ready-for-action-test`, `fix-build-errors`, etc.)
+- `runtime_ready`: coarse gate (`yes`/`no`) indicating whether device-side runtime validation should proceed
+- `anykernel_validate_status`: structure validation result for `AnyKernel3-umi-candidate.zip`
+
 ## Local Dry-Run Notes
 
 Most scripts read from `artifacts/` and write back to `artifacts/`.
