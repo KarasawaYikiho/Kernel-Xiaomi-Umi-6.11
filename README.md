@@ -141,4 +141,4 @@ Checks include Python script compilation, workflow script references, and markdo
 
 ## License
 
-Licensed under **GNU GPL v2.0**. See `LICENSE`.
+Licensed under **GPL-2.0-only** (GNU General Public License v2.0 only). See `LICENSE`.
