@@ -41,7 +41,7 @@ This directory contains the automation chain used by `phase2-port-umi.yml`.
 ## Script Categories
 
 - **Source prep orchestration:** `prepare_phase2_sources.sh`, `check_target_kernel_version.sh`
-- **Migration:** `apply_phase2_migration.sh`, `phase2_apply.sh`
+- **Migration:** `apply_phase2_migration.sh`, `phase2_apply.sh` (includes `vendor/qcom` + `vendor/xiaomi` DTS roots and defconfig fallback strategy)
 - **DTB matching/diagnostics:** `build_dtb_manifest.py`, `dtb_postcheck.py`, `analyze_dtb_miss.py`
 - **Readiness/reporting:** `evaluate_artifact.py`, `build_phase2_report.py`, `validate_phase2_report.py`, `validate_anykernel_candidate.py`, `build_action_validation_checklist.py` (includes `runtime_ready` report field)
 - **CI artifact UX:** `build_artifact_index.py`, `summarize_artifacts_markdown.py`, `build_status_badge_line.py`, `build_artifact_checksums.py`

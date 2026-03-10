@@ -21,11 +21,20 @@ mkdir -p "$PORT_DIR"
 SRC_DEF="$SRC_DIR/arch/arm64/configs/${DEVICE}_defconfig"
 DST_DEF="$DST_DIR/arch/arm64/configs/${DEVICE}_defconfig"
 
+if [[ ! -f "$SRC_DEF" ]]; then
+  for cand in "$SRC_DIR/arch/arm64/configs/${DEVICE}_stock-defconfig" "$SRC_DIR/arch/arm64/configs/AOSP_defconfig/${DEVICE}_stock-defconfig"; do
+    if [[ -f "$cand" ]]; then
+      SRC_DEF="$cand"
+      break
+    fi
+  done
+fi
+
 if [[ -f "$SRC_DEF" ]]; then
   log "copy defconfig: $SRC_DEF -> $DST_DEF"
   cp -f "$SRC_DEF" "$DST_DEF"
 else
-  log "ERROR: source defconfig not found: $SRC_DEF"
+  log "ERROR: source defconfig not found: $SRC_DIR/arch/arm64/configs/${DEVICE}_defconfig"
   exit 1
 fi
 
@@ -144,6 +153,7 @@ fi
 # 2) dts/dtsi migration (recursive + include-aware)
 SRC_ROOTS=(
   "arch/arm64/boot/dts/vendor/qcom"
+  "arch/arm64/boot/dts/vendor/xiaomi"
   "arch/arm64/boot/dts/qcom"
 )
 
