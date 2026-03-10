@@ -26,8 +26,9 @@ def main() -> int:
     anyk_val = r.get("anykernel_validate_status", "unknown")
     ratio = r.get("manifest_hit_ratio", "0.000")
     next_action = r.get("next_action", "collect-more-data")
+    runtime_ready = r.get("runtime_ready", "no")
 
-    line = f"build={build_rc} | flash={flash} | anykernel={anyk}/{anyk_val} | hit_ratio={ratio} | next={next_action}"
+    line = f"build={build_rc} | flash={flash} | anykernel={anyk}/{anyk_val} | runtime_ready={runtime_ready} | hit_ratio={ratio} | next={next_action}"
     OUT.write_text(line + "\n", encoding="utf-8")
     print(f"wrote {OUT}")
     return 0
