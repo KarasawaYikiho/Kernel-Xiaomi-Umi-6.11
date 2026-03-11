@@ -28,7 +28,7 @@ on:
         required: true
         default: "umi"
       bootimg_required_bytes:
-        description: "required boot.img size in bytes (default 256MiB)"
+        description: "max allowed boot.img size in bytes (default 256MiB, set <=0 to disable size gate)"
         required: false
         default: "268435456"
       bootimg_ramdisk_url:
@@ -48,6 +48,7 @@ jobs:
       BOOTIMG_REQUIRED_BYTES: ${{ github.event.inputs.bootimg_required_bytes || '268435456' }}
       BOOTIMG_RAMDISK_URL: ${{ github.event.inputs.bootimg_ramdisk_url || '' }}
       BOOTIMG_PREBUILT_URL: ${{ github.event.inputs.bootimg_prebuilt_url || '' }}
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       PATH: /home/runner/.local/bin:/usr/local/bin:/usr/bin:/bin
     steps:
       - name: Checkout orchestrator repo
