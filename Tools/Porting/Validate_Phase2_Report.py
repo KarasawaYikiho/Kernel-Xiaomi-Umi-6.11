@@ -15,7 +15,21 @@ REQ_KEYS = [
     "next_action",
     "runtime_ready",
     "bootimg_status",
+    "bootimg_required_bytes",
+    "bootimg_required_bytes_parse",
 ]
+
+ALLOWED_NEXT_ACTION = {
+    "collect-more-data",
+    "fix-defconfig-errors",
+    "fix-build-errors",
+    "fix-dtb-build-errors",
+    "ready-for-action-test",
+    "prepare-release-bootimg",
+    "fix-anykernel-packaging",
+}
+ALLOWED_YES_NO = {"yes", "no"}
+ALLOWED_PARSE = {"exact", "default-empty", "default-invalid", "unknown"}
 
 
 def parse_kv(path: Path) -> dict[str, str]:
@@ -32,14 +46,34 @@ def parse_kv(path: Path) -> dict[str, str]:
 def main() -> int:
     ART.mkdir(parents=True, exist_ok=True)
     rep = parse_kv(ART / "phase2-report.txt")
+
     missing = [k for k in REQ_KEYS if k not in rep or rep.get(k, "") == ""]
-    status = "ok" if not missing else "invalid"
+    invalid = []
+
+    next_action = rep.get("next_action", "")
+    if next_action and next_action not in ALLOWED_NEXT_ACTION:
+        invalid.append(f"next_action:{next_action}")
+
+    runtime_ready = rep.get("runtime_ready", "")
+    if runtime_ready and runtime_ready not in ALLOWED_YES_NO:
+        invalid.append(f"runtime_ready:{runtime_ready}")
+
+    parse_state = rep.get("bootimg_required_bytes_parse", "")
+    if parse_state and parse_state not in ALLOWED_PARSE:
+        invalid.append(f"bootimg_required_bytes_parse:{parse_state}")
+
+    required_bytes = rep.get("bootimg_required_bytes", "")
+    if required_bytes and not required_bytes.lstrip("-").isdigit():
+        invalid.append(f"bootimg_required_bytes:{required_bytes}")
+
+    status = "ok" if not missing and not invalid else "invalid"
 
     OUT.write_text(
         "\n".join([
             f"status={status}",
             f"required_keys={len(REQ_KEYS)}",
             f"missing_keys={','.join(missing)}",
+            f"invalid_values={','.join(invalid)}",
         ]) + "\n",
         encoding="utf-8",
     )
