@@ -41,6 +41,7 @@ This directory contains the automation chain used by `Phase2-Port-Umi.yml`.
 - `bootimg_required_bytes_parse` — parse state (`exact`, `default-empty`, `default-invalid`, `unknown`)
 - `decision-consistency.txt` — semantic consistency check across report/focus/runtime
 - `action-validation-checklist.md` — runtime checklist with blocker snapshot
+- `postprocess-status.txt` — per-step postprocess execution status (`ok` / `failed`)
 
 ## Local Dry-Run Notes
 
