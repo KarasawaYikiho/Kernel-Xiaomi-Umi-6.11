@@ -61,6 +61,7 @@ def main() -> int:
             "system_ext.new.dat.br",
             "mi_ext.new.dat.br",
         ]
+        firmware_entries = sorted([n for n in names if n.startswith("firmware-update/") and not n.endswith("/")])
 
         lines: list[str] = []
         lines.append("# Official ROM Package Analysis (UMI OS1.0.5.0.TJBCNXM)")
@@ -97,6 +98,11 @@ def main() -> int:
             lines.append("```")
         else:
             lines.append("- updater-script missing or unreadable")
+        lines.append("")
+
+        lines.append("## Firmware Payload Snapshot")
+        lines.append(f"- firmware-update entries: `{len(firmware_entries)}`")
+        lines.append("- sample: " + (", ".join(firmware_entries[:25]) if firmware_entries else "(none)"))
         lines.append("")
 
         lines.append("## Key Image/Data Entries")

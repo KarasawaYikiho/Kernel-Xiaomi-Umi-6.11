@@ -153,6 +153,10 @@ package_extract_file("firmware-update/vbmeta_system.img", "/dev/block/bootdevice
 set_progress(1.000000);
 ```
 
+## Firmware Payload Snapshot
+- firmware-update entries: `23`
+- sample: firmware-update/BTFM.bin, firmware-update/NON-HLOS.bin, firmware-update/abl.elf, firmware-update/aop.mbn, firmware-update/cmnlib.mbn, firmware-update/cmnlib64.mbn, firmware-update/devcfg.mbn, firmware-update/dspso.bin, firmware-update/dtbo.img, firmware-update/featenabler.mbn, firmware-update/hyp.mbn, firmware-update/km4.mbn, firmware-update/logo.img, firmware-update/qupv3fw.elf, firmware-update/storsec.mbn, firmware-update/tz.mbn, firmware-update/uefi_sec.mbn, firmware-update/vbmeta.img, firmware-update/vbmeta_system.img, firmware-update/xbl_4.elf, firmware-update/xbl_5.elf, firmware-update/xbl_config_4.elf, firmware-update/xbl_config_5.elf
+
 ## Key Image/Data Entries
 - `boot.img`: size=`134217728` sha256=`95f61211e885d05047f152977077d2019e361390b635342b91f6fa8cebd56dca`
 - `firmware-update/dtbo.img`: size=`33554432` sha256=`5a4a3cf8fdb3e78c16c7f155f1195eed332cf78993562a36d02bac632d09ab70`
