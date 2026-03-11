@@ -59,16 +59,13 @@ elif [[ -f source/tools/mkbootimg/mkbootimg.py ]]; then
   mkbootimg_cmd="python3 source/tools/mkbootimg/mkbootimg.py"
 elif [[ -f target/tools/mkbootimg/mkbootimg.py ]]; then
   mkbootimg_cmd="python3 target/tools/mkbootimg/mkbootimg.py"
-elif python3 - <<'PY'
+elif command -v python3 >/dev/null 2>&1; then
+  py_mkbootimg="$(python3 - <<'PY'
 import importlib.util
 print('ok' if importlib.util.find_spec('mkbootimg') else 'no')
 PY
-then
-  if [[ "$(python3 - <<'PY'
-import importlib.util
-print('ok' if importlib.util.find_spec('mkbootimg') else 'no')
-PY
-)" == "ok" ]]; then
+)"
+  if [[ "$py_mkbootimg" == "ok" ]]; then
     mkbootimg_cmd="python3 -m mkbootimg"
   fi
 fi
