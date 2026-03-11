@@ -14,10 +14,11 @@ This directory contains the automation chain used by `Phase2-Port-Umi.yml`.
 8. `Build_Anykernel_Candidate.sh` — build AnyKernel candidate and emit `anykernel-info.txt`
 9. `Prepare_Release_Bootimg.sh` — best-effort release `boot.img` path (`ramdisk` build or prebuilt URL fallback)
 10. `Validate_Anykernel_Candidate.py` — structure validation for candidate zip
-11. `Build_Driver_Integration_Status.py` — build integration gate from reference/ROM baseline + manifest status
-12. `Build_Phase2_Report.py` — produce `phase2-report.txt`
-13. `Write_Run_Meta.sh` — write normalized run metadata
-14. `Run_Postprocess_Suite.sh` — execute report/summary/metrics/consistency/checklist chain
+11. `Init_Driver_Integration_Manifest.py` — initialize a default `driver-integration-manifest.txt` when missing
+12. `Build_Driver_Integration_Status.py` — build integration gate from reference/ROM baseline + manifest status
+13. `Build_Phase2_Report.py` — produce `phase2-report.txt`
+14. `Write_Run_Meta.sh` — write normalized run metadata
+15. `Run_Postprocess_Suite.sh` — execute report/summary/metrics/consistency/checklist chain
 
 ## Script Categories
 
@@ -25,7 +26,7 @@ This directory contains the automation chain used by `Phase2-Port-Umi.yml`.
 - Input normalization: `Normalize_Bootimg_Required_Bytes.sh`
 - Migration: `Apply_Phase2_Migration.sh`, `Phase2_Apply.sh`
 - DTB diagnostics: `Build_Dtb_Manifest.py`, `Dtb_Postcheck.py`, `Analyze_Dtb_Miss.py`
-- Readiness/reporting: `Phase2_Decision.py`, `Build_Driver_Integration_Status.py`, `Build_Phase2_Report.py`, `Validate_Phase2_Report.py`, `Validate_Boot_Image.py`
+- Readiness/reporting: `Phase2_Decision.py`, `Init_Driver_Integration_Manifest.py`, `Build_Driver_Integration_Status.py`, `Build_Phase2_Report.py`, `Validate_Phase2_Report.py`, `Validate_Boot_Image.py`
 - Packaging: `Build_Anykernel_Candidate.sh`, `Validate_Anykernel_Candidate.py`, `Prepare_Release_Bootimg.sh`
 - Artifact UX: `Build_Artifact_Index.py`, `Summarize_Artifacts_Markdown.py`, `Build_Status_Badge_Line.py`, `Build_Artifact_Checksums.py`
 - Metrics/consistency: `Collect_Metrics_Json.py`, `Suggest_Next_Focus.py`, `Verify_Decision_Consistency.py`
@@ -43,6 +44,7 @@ This directory contains the automation chain used by `Phase2-Port-Umi.yml`.
 - `decision-consistency.txt` — semantic consistency check across report/focus/runtime
 - `action-validation-checklist.md` — runtime checklist with blocker snapshot
 - `postprocess-status.txt` — per-step postprocess execution status (`ok` / `failed`)
+- `driver-integration-manifest.txt` — driver subsystem checklist (`integrated:<item>` / `pending:<item>`)
 
 ## Local Dry-Run Notes
 
