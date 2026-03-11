@@ -25,7 +25,7 @@ def main() -> int:
     flash = report.get("flash_status", "unknown")
     anyk = report.get("anykernel_ok", "no")
     anyk_val = report.get("anykernel_validate_status", "unknown")
-    hit_ratio = parse_float(report.get("manifest_hit_ratio", "0"), default=0.0)
+    hit_ratio = parse_float(report.get("manifest_hit_ratio", "0"), 0.0)
     build_rc = report.get("build_rc", "n/a")
     dtbs_rc = report.get("dtbs_rc", "n/a")
     report_next = report.get("next_action", "")
