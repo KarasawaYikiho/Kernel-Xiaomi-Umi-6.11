@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Usage:
-#   collect_phase2_artifacts.sh <device>
+#   Collect_Phase2_Artifacts.sh <device>
 
 DEVICE="${1:-umi}"
 
@@ -21,7 +21,7 @@ cp -v out/boot.img artifacts/ || true
 find out/arch/arm64/boot/dts -type f \( -name '*.dtb' -o -name '*.dtbo' \) > artifacts/all_dtb_paths.txt || true
 
 # build manifest from migrated dts list (preferred)
-python3 tools/porting/build_dtb_manifest.py || true
+python3 tools/porting/Build_Dtb_Manifest.py || true
 
 # pick paths by manifest first
 : > artifacts/umi_primary_dtb_paths.txt
@@ -32,8 +32,8 @@ if [ -s artifacts/target_dtb_manifest.txt ]; then
   done < artifacts/target_dtb_manifest.txt
 fi
 
-python3 tools/porting/dtb_postcheck.py || true
-python3 tools/porting/analyze_dtb_miss.py || true
+python3 tools/porting/Dtb_Postcheck.py || true
+python3 tools/porting/Analyze_Dtb_Miss.py || true
 
 # fallback 1: strict umi/xiaomi/sm8250 path matching
 if [ ! -s artifacts/umi_primary_dtb_paths.txt ]; then
@@ -76,4 +76,4 @@ fi
 } > artifacts/umi_bundle/pack-info.txt
 
 (cd artifacts/umi_bundle && zip -r ../phase2-umi-focused-package.zip .)
-python3 tools/porting/evaluate_artifact.py || true
+python3 tools/porting/Evaluate_Artifact.py || true

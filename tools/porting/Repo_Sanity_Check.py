@@ -21,9 +21,9 @@ def check_python_compile() -> list[str]:
 
 def check_workflow_script_refs() -> list[str]:
     errs: list[str] = []
-    wf = ROOT / ".github" / "workflows" / "phase2-port-umi.yml"
+    wf = ROOT / ".github" / "workflows" / "Phase2-Port-Umi.yml"
     if not wf.exists():
-        return ["missing workflow: .github/workflows/phase2-port-umi.yml"]
+        return ["missing workflow: .github/workflows/Phase2-Port-Umi.yml"]
     text = wf.read_text(encoding="utf-8")
     refs = re.findall(r"\./tools/porting/([\w\-]+\.sh)", text)
     for r in refs:

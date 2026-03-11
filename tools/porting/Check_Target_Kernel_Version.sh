@@ -2,6 +2,6 @@
 set -euo pipefail
 
 # Usage:
-#   check_target_kernel_version.sh
+#   Check_Target_Kernel_Version.sh
 
 grep -E '^(VERSION|PATCHLEVEL|SUBLEVEL)\s*=\s*' target/Makefile

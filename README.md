@@ -29,7 +29,7 @@ It is designed to automate Phase2 migration, CI build attempts, diagnostics, and
 
 ### Quick Start (recommended)
 
-Run **`phase2-port-umi.yml`** with default inputs, then inspect artifacts in this order:
+Run **`Phase2-Port-Umi.yml`** with default inputs, then inspect artifacts in this order:
 
 1. `artifacts/phase2-report.txt`
 2. `artifacts/build-exit.txt`
@@ -39,7 +39,7 @@ Run **`phase2-port-umi.yml`** with default inputs, then inspect artifacts in thi
 
 This provides a fast pass/fail + next-action loop.
 
-### `build-umi-kernel.yml`
+### `Build-Umi-Kernel.yml`
 
 Reference-style cloud build flow:
 
@@ -56,7 +56,7 @@ Inputs:
 - `device` (default: `umi`)
 - `ksu` (default: `false`)
 
-### `phase2-port-umi.yml`
+### `Phase2-Port-Umi.yml`
 
 Phase2 migration + build + diagnostics flow:
 
@@ -90,15 +90,15 @@ Quick dispatch guidance:
 
 Core wrappers / orchestrators:
 
-- `tools/porting/install_ci_deps.sh`
-- `tools/porting/prepare_phase2_sources.sh`
-- `tools/porting/check_target_kernel_version.sh`
-- `tools/porting/apply_phase2_migration.sh`
-- `tools/porting/run_phase2_build.sh`
-- `tools/porting/collect_phase2_artifacts.sh`
-- `tools/porting/build_anykernel_candidate.sh`
-- `tools/porting/write_run_meta.sh`
-- `tools/porting/run_postprocess_suite.sh`
+- `tools/porting/Install_Ci_Deps.sh`
+- `tools/porting/Prepare_Phase2_Sources.sh`
+- `tools/porting/Check_Target_Kernel_Version.sh`
+- `tools/porting/Apply_Phase2_Migration.sh`
+- `tools/porting/Run_Phase2_Build.sh`
+- `tools/porting/Collect_Phase2_Artifacts.sh`
+- `tools/porting/Build_Anykernel_Candidate.sh`
+- `tools/porting/Write_Run_Meta.sh`
+- `tools/porting/Run_Postprocess_Suite.sh`
 
 Detailed script index:
 
@@ -140,7 +140,7 @@ Additional diagnostics:
 
 Run:
 
-- `python tools/porting/repo_sanity_check.py`
+- `python tools/porting/Repo_Sanity_Check.py`
 
 Checks include Python script compilation, workflow script references, and markdown local-link validity.
 

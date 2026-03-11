@@ -1,60 +1,60 @@
 # tools/porting - Script Index
 
-This directory contains the automation chain used by `phase2-port-umi.yml`.
+This directory contains the automation chain used by `Phase2-Port-Umi.yml`.
 
 ## CI Pipeline Order
 
-1. `install_ci_deps.sh`
+1. `Install_Ci_Deps.sh`
    - Installs required CI packages for build/diagnostics and best-effort boot image tooling (`mkbootimg`).
-2. `prepare_phase2_sources.sh`
+2. `Prepare_Phase2_Sources.sh`
    - Clones source and target trees into `source/` and `target/`.
-3. `check_target_kernel_version.sh`
+3. `Check_Target_Kernel_Version.sh`
    - Prints target kernel version tuple from `target/Makefile`.
-4. `apply_phase2_migration.sh`
-   - Wrapper around `phase2_apply.sh` for device-specific migration.
-5. `run_phase2_build.sh`
+4. `Apply_Phase2_Migration.sh`
+   - Wrapper around `Phase2_Apply.sh` for device-specific migration.
+5. `Run_Phase2_Build.sh`
    - Runs defconfig, core build (`Image.gz` + modules), then preferred DTB targets from manifest (fallback to matrix DTB build); writes `artifacts/build-exit.txt` and build logs.
-6. `collect_phase2_artifacts.sh`
+6. `Collect_Phase2_Artifacts.sh`
    - Collects build outputs, resolves primary DTB candidates, packages umi bundle, and writes flash-readiness inputs.
-7. `build_anykernel_candidate.sh`
+7. `Build_Anykernel_Candidate.sh`
    - Packages AnyKernel3 candidate zip and writes `artifacts/anykernel-info.txt`.
-8. `prepare_release_bootimg.sh`
+8. `Prepare_Release_Bootimg.sh`
    - Best-effort `boot.img` stage: either builds with `mkbootimg` + ramdisk, or downloads `BOOTIMG_PREBUILT_URL` fallback; both URL inputs support direct files or zip links (best-effort extraction of `ramdisk*.cpio.gz` / `boot.img`). Writes `artifacts/bootimg-build.txt` with explicit blockers if inputs are missing.
    - Detection order summary: system `mkbootimg` -> `$HOME/.local/bin/mkbootimg(.py)` -> source/target embedded script -> `python3 -m mkbootimg` -> best-effort remote `mkbootimg.py` fetch into `artifacts/`.
-9. `validate_anykernel_candidate.py`
+9. `Validate_Anykernel_Candidate.py`
    - Validates `AnyKernel3-umi-candidate.zip` structure and writes `artifacts/anykernel-validate.txt`.
-9. `build_phase2_report.py`  
+9. `Build_Phase2_Report.py`  
    - Generates `artifacts/phase2-report.txt`.
-10. `write_run_meta.sh`
+10. `Write_Run_Meta.sh`
    - Writes normalized workflow/run/input metadata to `artifacts/run-meta.txt`.
 11. Post-processing suite:
-   - `check_artifact_completeness.py`
-   - `validate_anykernel_candidate.py` (re-run for tolerance when earlier step is skipped/partial)
-   - `validate_boot_image.py`
-   - `suggest_next_focus.py`
-   - `extract_build_errors.py`
-   - `build_artifact_index.py`
-   - `summarize_artifacts_markdown.py`
-   - `validate_phase2_report.py`
-   - `collect_metrics_json.py`
-   - `build_status_badge_line.py`
-   - `build_artifact_checksums.py`
-   - `build_action_validation_checklist.py`
+   - `Check_Artifact_Completeness.py`
+   - `Validate_Anykernel_Candidate.py` (re-run for tolerance when earlier step is skipped/partial)
+   - `Validate_Boot_Image.py`
+   - `Suggest_Next_Focus.py`
+   - `Extract_Build_Errors.py`
+   - `Build_Artifact_Index.py`
+   - `Summarize_Artifacts_Markdown.py`
+   - `Validate_Phase2_Report.py`
+   - `Collect_Metrics_Json.py`
+   - `Build_Status_Badge_Line.py`
+   - `Build_Artifact_Checksums.py`
+   - `Build_Action_Validation_Checklist.py`
 
 ## Script Categories
 
-- **Source prep orchestration:** `prepare_phase2_sources.sh`, `check_target_kernel_version.sh`
-- **Migration:** `apply_phase2_migration.sh`, `phase2_apply.sh` (includes `vendor/qcom` + `vendor/xiaomi` DTS roots and defconfig fallback strategy)
-- **DTB matching/diagnostics:** `build_dtb_manifest.py`, `dtb_postcheck.py`, `analyze_dtb_miss.py`
-- **Readiness/reporting:** `evaluate_artifact.py`, `build_phase2_report.py`, `validate_phase2_report.py`, `validate_anykernel_candidate.py`, `build_action_validation_checklist.py` (includes `runtime_ready` report field)
-- **CI artifact UX:** `build_artifact_index.py`, `summarize_artifacts_markdown.py`, `build_status_badge_line.py`, `build_artifact_checksums.py`
-- **Automation metrics:** `collect_metrics_json.py`, `check_artifact_completeness.py`, `suggest_next_focus.py`, `extract_build_errors.py`
-- **Build orchestration:** `run_phase2_build.sh` (defconfig/build attempt + exit snapshot)
-- **Build artifact orchestration:** `collect_phase2_artifacts.sh` (collect/package primary artifacts after build)
-- **AnyKernel packaging orchestration:** `build_anykernel_candidate.sh` (builds candidate AnyKernel zip + diagnostics)
-- **Run metadata orchestration:** `write_run_meta.sh` (records run/input metadata)
-- **Postprocess orchestration:** `run_postprocess_suite.sh` (runs post-build reporting scripts in CI)
-- **Repository sanity checks:** `repo_sanity_check.py` (python compile, workflow script refs, markdown link checks)
+- **Source prep orchestration:** `Prepare_Phase2_Sources.sh`, `Check_Target_Kernel_Version.sh`
+- **Migration:** `Apply_Phase2_Migration.sh`, `Phase2_Apply.sh` (includes `vendor/qcom` + `vendor/xiaomi` DTS roots and defconfig fallback strategy)
+- **DTB matching/diagnostics:** `Build_Dtb_Manifest.py`, `Dtb_Postcheck.py`, `Analyze_Dtb_Miss.py`
+- **Readiness/reporting:** `Evaluate_Artifact.py`, `Build_Phase2_Report.py`, `Validate_Phase2_Report.py`, `Validate_Anykernel_Candidate.py`, `Build_Action_Validation_Checklist.py` (includes `runtime_ready` report field)
+- **CI artifact UX:** `Build_Artifact_Index.py`, `Summarize_Artifacts_Markdown.py`, `Build_Status_Badge_Line.py`, `Build_Artifact_Checksums.py`
+- **Automation metrics:** `Collect_Metrics_Json.py`, `Check_Artifact_Completeness.py`, `Suggest_Next_Focus.py`, `Extract_Build_Errors.py`
+- **Build orchestration:** `Run_Phase2_Build.sh` (defconfig/build attempt + exit snapshot)
+- **Build artifact orchestration:** `Collect_Phase2_Artifacts.sh` (collect/package primary artifacts after build)
+- **AnyKernel packaging orchestration:** `Build_Anykernel_Candidate.sh` (builds candidate AnyKernel zip + diagnostics)
+- **Run metadata orchestration:** `Write_Run_Meta.sh` (records run/input metadata)
+- **Postprocess orchestration:** `Run_Postprocess_Suite.sh` (runs post-build reporting scripts in CI)
+- **Repository sanity checks:** `Repo_Sanity_Check.py` (python compile, workflow script refs, markdown link checks)
 
 ## Key Report Signals
 
@@ -73,12 +73,12 @@ Most scripts read from `artifacts/` and write back to `artifacts/`.
 A typical local validation flow after obtaining logs/artifacts is:
 
 ```bash
-python3 tools/porting/validate_anykernel_candidate.py
-python3 tools/porting/build_phase2_report.py
-python3 tools/porting/check_artifact_completeness.py
-python3 tools/porting/extract_build_errors.py
-python3 tools/porting/collect_metrics_json.py
-python3 tools/porting/build_action_validation_checklist.py
+python3 tools/porting/Validate_Anykernel_Candidate.py
+python3 tools/porting/Build_Phase2_Report.py
+python3 tools/porting/Check_Artifact_Completeness.py
+python3 tools/porting/Extract_Build_Errors.py
+python3 tools/porting/Collect_Metrics_Json.py
+python3 tools/porting/Build_Action_Validation_Checklist.py
 ```
 
 > These scripts are intentionally tolerant in CI (`|| true` in workflow), so missing optional files should be reported rather than hard-failing.

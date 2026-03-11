@@ -7,7 +7,7 @@ sudo apt-get install -y \
   crossbuild-essential-arm64 ccache pahole lz4 xz-utils zstd \
   python3 python3-pip clang lld llvm zip
 
-# Best-effort boot image tooling (used by prepare_release_bootimg.sh)
+# Best-effort boot image tooling (used by Prepare_Release_Bootimg.sh)
 python3 -m pip install --user --upgrade pip || true
 python3 -m pip install --user mkbootimg || true
 # Ensure user-level scripts are discoverable in CI shells.

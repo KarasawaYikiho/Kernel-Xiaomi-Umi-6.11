@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Usage:
-#   prepare_phase2_sources.sh <source_repo> <source_branch> <target_repo> <target_branch>
+#   Prepare_Phase2_Sources.sh <source_repo> <source_branch> <target_repo> <target_branch>
 
 SOURCE_REPO="${1:?source_repo required}"
 SOURCE_BRANCH="${2:?source_branch required}"
