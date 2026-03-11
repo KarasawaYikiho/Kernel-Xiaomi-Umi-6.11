@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from Kv_Utils import parse_kv
+
 ART = Path("artifacts")
 OUT = ART / "driver-integration-status.txt"
 
@@ -19,6 +21,7 @@ def main() -> int:
     reference_report = Path("Porting/Reference-Drivers-Analysis.md")
     rom_report = Path("Porting/OfficialRom-Umi-Os1.0.5.0-Analysis.md")
     manifest = ART / "driver-integration-manifest.txt"
+    manifest_validate = parse_kv(ART / "driver-integration-manifest-validate.txt")
 
     reference_ready = reference_report.exists()
     rom_ready = rom_report.exists()
@@ -47,6 +50,10 @@ def main() -> int:
     if rom_ready and not has_partition_baseline:
         pending.append("partition_baseline_not_confirmed")
 
+    manifest_validate_status = manifest_validate.get("status", "unknown")
+    if manifest_validate_status not in ("ok", "unknown"):
+        pending.append("manifest_format_invalid")
+
     if integrated_count >= 3 and not pending:
         status = "complete"
         reason = "integration_manifest_complete"
@@ -66,6 +73,7 @@ def main() -> int:
             f"rom_baseline_ready={'yes' if rom_ready else 'no'}",
             f"camera_focus_ready={'yes' if has_camera_focus else 'no'}",
             f"partition_baseline_ready={'yes' if has_partition_baseline else 'no'}",
+            f"manifest_validate_status={manifest_validate_status}",
             "pending=" + ",".join(dict.fromkeys(pending)),
         ]) + "\n",
         encoding="utf-8",
