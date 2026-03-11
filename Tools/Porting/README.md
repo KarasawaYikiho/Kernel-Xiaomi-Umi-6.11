@@ -1,4 +1,4 @@
-# Tools/porting - Script Index
+# Tools/Porting - Script Index
 
 This directory contains the automation chain used by `Phase2-Port-Umi.yml`.
 
