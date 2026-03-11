@@ -2,19 +2,11 @@
 from pathlib import Path
 import json
 
+from Kv_Utils import parse_kv
+
 ART = Path("artifacts")
 OUT = ART / "phase2-metrics.json"
 
-
-def parse_kv(path: Path) -> dict[str, str]:
-    kv: dict[str, str] = {}
-    if not path.exists():
-        return kv
-    for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
-        if "=" in line:
-            k, v = line.split("=", 1)
-            kv[k.strip()] = v.strip()
-    return kv
 
 
 def main() -> int:
