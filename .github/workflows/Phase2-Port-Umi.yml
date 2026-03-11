@@ -28,9 +28,9 @@ on:
         required: true
         default: "umi"
       bootimg_required_bytes:
-        description: "target final boot.img size in bytes (default 256MiB)"
+        description: "target final boot.img size in bytes (default 128MiB, aligned with official umi ROM baseline)"
         required: false
-        default: "268435456"
+        default: "134217728"
       bootimg_ramdisk_url:
         description: "optional URL to fetch ramdisk.cpio.gz (or a zip containing ramdisk payload) for release bootimg build"
         required: false
@@ -45,7 +45,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     env:
-      BOOTIMG_REQUIRED_BYTES: ${{ github.event.inputs.bootimg_required_bytes || '268435456' }}
+      BOOTIMG_REQUIRED_BYTES: ${{ github.event.inputs.bootimg_required_bytes || '134217728' }}
       BOOTIMG_RAMDISK_URL: ${{ github.event.inputs.bootimg_ramdisk_url || '' }}
       BOOTIMG_PREBUILT_URL: ${{ github.event.inputs.bootimg_prebuilt_url || '' }}
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -72,6 +72,24 @@ jobs:
         run: |
           chmod +x Tools/Porting/Check_Target_Kernel_Version.sh
           ./Tools/Porting/Check_Target_Kernel_Version.sh
+
+      - name: Normalize boot image size input
+        shell: bash
+        run: |
+          set -euo pipefail
+          raw="${BOOTIMG_REQUIRED_BYTES:-134217728}"
+          raw="${raw//[[:space:]]/}"
+          if [[ -z "$raw" ]]; then
+            raw="134217728"
+          fi
+          if [[ "$raw" =~ ^-?[0-9]+$ ]]; then
+            echo "BOOTIMG_REQUIRED_BYTES=$raw" >> "$GITHUB_ENV"
+            echo "bootimg_required_bytes_normalized=$raw" >> "$GITHUB_OUTPUT"
+          else
+            echo "BOOTIMG_REQUIRED_BYTES=134217728" >> "$GITHUB_ENV"
+            echo "bootimg_required_bytes_normalized=134217728" >> "$GITHUB_OUTPUT"
+            echo "::warning::Invalid bootimg_required_bytes input '$raw', fallback to 134217728"
+          fi
 
       - name: Apply Phase2 migration
         run: |
