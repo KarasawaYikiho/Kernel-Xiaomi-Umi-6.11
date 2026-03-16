@@ -124,6 +124,11 @@ jobs:
         run: |
           python3 Tools/Porting/Init_Driver_Integration_Manifest.py || true
 
+      - name: Sync driver integration manifest with ROM/reference backlog
+        if: always()
+        run: |
+          python3 Tools/Porting/Sync_Driver_Integration_Manifest.py || true
+
       - name: Validate driver integration manifest
         if: always()
         run: |

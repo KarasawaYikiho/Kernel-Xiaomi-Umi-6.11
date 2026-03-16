@@ -60,6 +60,9 @@ def main() -> int:
     elif integrated_count > 0:
         status = "partial"
         reason = "integration_manifest_partial"
+    elif manifest.exists() and manifest_validate_status in ("ok", "unknown") and pending:
+        status = "pending"
+        reason = "integration_backlog_initialized"
     else:
         status = "pending"
         reason = "integration_manifest_missing_or_empty"
