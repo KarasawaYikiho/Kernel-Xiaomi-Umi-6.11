@@ -20,6 +20,8 @@ def main() -> int:
     build_rc = report.get("build_rc", "n/a")
     dtbs_rc = report.get("dtbs_rc", "n/a")
     report_next = report.get("next_action", "")
+    runtime_overall = report.get("runtime_validation_overall", "UNKNOWN")
+    runtime_failed_step = report.get("runtime_validation_failed_step", "")
 
     focus, reason = derive_next_focus(
         report_next_action=report_next,
@@ -29,6 +31,8 @@ def main() -> int:
         anykernel_ok=anyk,
         anykernel_validate_status=anyk_val,
         manifest_hit_ratio=hit_ratio,
+        runtime_validation_overall=runtime_overall,
+        runtime_validation_failed_step=runtime_failed_step,
     )
 
     OUT.write_text(
@@ -41,6 +45,8 @@ def main() -> int:
             f"manifest_hit_ratio={hit_ratio:.3f}",
             f"build_rc={build_rc}",
             f"dtbs_rc={dtbs_rc}",
+            f"runtime_validation_overall={runtime_overall}",
+            f"runtime_validation_failed_step={runtime_failed_step}",
         ]) + "\n",
         encoding="utf-8",
     )

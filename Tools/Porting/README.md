@@ -42,7 +42,7 @@ This directory contains the automation chain used by `Phase2-Port-Umi.yml`.
 
 ## Key Report Signals
 
-- `next_action` — machine-friendly next step (`integrate-drivers-phase3`, `ready-for-action-test`, `prepare-release-bootimg`, etc.)
+- `next_action` — machine-friendly next step (`integrate-drivers-phase3`, `ready-for-action-test`, `prepare-release-bootimg`, `analyze-runtime-failure`, etc.)
 - `runtime_ready` — coarse gate (`yes`/`no`) for device runtime validation
 - `anykernel_validate_status` — AnyKernel candidate structure validity
 - `bootimg_status` — release boot image readiness (`ok`, `missing`, `size_mismatch`)

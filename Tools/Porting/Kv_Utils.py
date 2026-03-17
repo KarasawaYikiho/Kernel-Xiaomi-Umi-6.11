@@ -11,5 +11,6 @@ def parse_kv(path: Path) -> dict[str, str]:
     for line in path.read_text(encoding="utf-8", errors="ignore").splitlines():
         if "=" in line:
             key, value = line.split("=", 1)
-            kv[key.strip()] = value.strip()
+            key = key.strip().lstrip("\ufeff")
+            kv[key] = value.strip()
     return kv

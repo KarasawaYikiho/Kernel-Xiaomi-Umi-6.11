@@ -10,6 +10,7 @@ ALLOWED_NEXT_ACTION: set[str] = {
     "prepare-release-bootimg",
     "fix-anykernel-packaging",
     "integrate-drivers-phase3",
+    "analyze-runtime-failure",
 }
 
 DEFAULT_BOOTIMG_REQUIRED_BYTES = 134217728
@@ -23,6 +24,7 @@ REPORT_NEXT_TO_FOCUS: dict[str, str] = {
     "ready-for-action-test": "request-action-validation",
     "prepare-release-bootimg": "prepare-release-bootimg",
     "integrate-drivers-phase3": "integrate-drivers-phase3",
+    "analyze-runtime-failure": "analyze-runtime-failure",
 }
 
 
@@ -47,6 +49,7 @@ def derive_next_action(
     anykernel_validate_status: str,
     bootimg_status: str,
     driver_integration_status: str,
+    runtime_validation_overall: str = "UNKNOWN",
 ) -> str:
     next_action = "collect-more-data"
 
@@ -73,6 +76,10 @@ def derive_next_action(
     if next_action == "ready-for-action-test" and driver_integration_status != "complete":
         next_action = "integrate-drivers-phase3"
 
+    # Device-side validation failure should explicitly redirect the workflow.
+    if runtime_validation_overall == "FAIL":
+        next_action = "analyze-runtime-failure"
+
     # Release boot image is a later-stage delivery gate, not a prerequisite for runtime testing.
     if next_action == "collect-more-data" and bootimg_status in ("missing", "size_mismatch"):
         next_action = "prepare-release-bootimg"
@@ -93,7 +100,13 @@ def derive_next_focus(
     anykernel_ok: str,
     anykernel_validate_status: str,
     manifest_hit_ratio: float,
+    runtime_validation_overall: str = "UNKNOWN",
+    runtime_validation_failed_step: str = "",
 ) -> tuple[str, str]:
+    if runtime_validation_overall == "FAIL":
+        failed = runtime_validation_failed_step or "runtime-validation"
+        return "analyze-runtime-failure", f"runtime_validation_failed:{failed}"
+
     # Keep focus semantically pinned to report decision when possible.
     mapped = REPORT_NEXT_TO_FOCUS.get(report_next_action)
     if mapped:

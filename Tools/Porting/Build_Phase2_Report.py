@@ -48,6 +48,7 @@ def main() -> int:
         anykernel_validate_status=anyk_val_status,
         bootimg_status=boot.get('status', 'missing'),
         driver_integration_status=driver.get('status', 'pending'),
+        runtime_validation_overall=runtime_result.get('overall', 'UNKNOWN'),
     )
     runtime_ready = derive_runtime_ready(next_action)
 
