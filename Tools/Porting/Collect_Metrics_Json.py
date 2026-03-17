@@ -17,6 +17,8 @@ def main() -> int:
     valid = parse_kv(ART / "phase2-report-validate.txt")
     consistency = parse_kv(ART / "decision-consistency.txt")
 
+    runtime_gate_status = "ready" if report.get("runtime_ready", "no") == "yes" and consistency.get("status", "unknown") in ("ok", "unknown") and report.get("driver_integration_status", "pending") == "complete" else "blocked"
+
     obj = {
         "run": {
             "id": meta.get("run_id", ""),
@@ -49,6 +51,7 @@ def main() -> int:
         "report": {
             "next_action": report.get("next_action", "collect-more-data"),
             "runtime_ready": report.get("runtime_ready", "no"),
+            "runtime_gate_status": runtime_gate_status,
             "driver_integration_status": report.get("driver_integration_status", "pending"),
             "driver_integration_reason": report.get("driver_integration_reason", "n/a"),
             "schema_status": valid.get("status", "unknown"),

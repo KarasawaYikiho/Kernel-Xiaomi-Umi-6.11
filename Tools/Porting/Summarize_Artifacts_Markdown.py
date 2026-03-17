@@ -17,6 +17,8 @@ def main() -> int:
 
     next_action = r.get('next_action', '')
 
+    runtime_gate = "ready" if r.get('runtime_ready', 'no') == 'yes' and r.get('driver_integration_status', 'pending') == 'complete' and d.get('status', 'unknown') in ('ok', 'unknown') else 'blocked'
+
     md = [
         "# Phase2 Artifact Summary",
         "",
@@ -27,11 +29,12 @@ def main() -> int:
         f"- AnyKernel Validate: `{r.get('anykernel_validate_status', 'unknown')}` ({r.get('anykernel_validate_reason', 'n/a')})",
         f"- Manifest Hit Ratio: `{r.get('manifest_hit_ratio', '0.000')}`",
         f"- Artifact Completeness: `{c.get('status', 'unknown')}`",
+        f"- Runtime Gate: `{runtime_gate}`",
         f"- Runtime Ready: `{r.get('runtime_ready', 'no')}`",
         f"- Driver Integration: `{r.get('driver_integration_status', 'pending')}` ({r.get('driver_integration_reason', 'n/a')})",
-        f"- Boot Image: `{r.get('bootimg_status', 'missing')}` ({r.get('bootimg_reason', 'n/a')})",
-        f"- Boot Image Build: `{r.get('bootimg_build_status', 'unknown')}` ({r.get('bootimg_build_reason', 'n/a')})",
         f"- Decision Consistency: `{d.get('status', 'unknown')}`",
+        f"- Boot Image: `{r.get('bootimg_status', 'missing')}` ({r.get('bootimg_reason', 'n/a')}) - release follow-up",
+        f"- Boot Image Build: `{r.get('bootimg_build_status', 'unknown')}` ({r.get('bootimg_build_reason', 'n/a')})",
         "",
         "## Next Focus",
         f"- Focus: `{n.get('focus', 'collect-more-data')}`",
