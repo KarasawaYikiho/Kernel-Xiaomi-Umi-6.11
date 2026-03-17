@@ -41,12 +41,13 @@ def main() -> int:
         blockers.append("anykernel_ok!=yes")
     if report.get("anykernel_validate_status", "unknown") not in ("ok", "unknown"):
         blockers.append(f"anykernel_validate_status={report.get('anykernel_validate_status', 'unknown')}")
+    release_blockers = []
     if bootimg_status != "ok":
-        blockers.append(f"bootimg_status={bootimg_status}")
+        release_blockers.append(f"bootimg_status={bootimg_status}")
     if bootimg_build_status not in ("ok", "unknown"):
-        blockers.append(f"bootimg_build_status={bootimg_build_status}")
+        release_blockers.append(f"bootimg_build_status={bootimg_build_status}")
     if bootimg_build_missing:
-        blockers.append(f"bootimg_build_missing={bootimg_build_missing}")
+        release_blockers.append(f"bootimg_build_missing={bootimg_build_missing}")
     if consistency_status not in ("ok", "unknown"):
         blockers.append(f"decision_consistency={consistency_status}")
     if consistency_errors:
@@ -74,14 +75,22 @@ def main() -> int:
         "",
         "## Decision",
         "- [ ] If `runtime_ready=yes`, `decision_consistency=ok`, and `driver_integration_status=complete`, proceed with device runtime validation.",
-        "- [ ] If any of the above is not satisfied, stop and finish driver integration / report blockers first.",
+        "- [ ] `bootimg_status` is tracked separately for release delivery and does not block AnyKernel-based runtime validation by itself.",
+        "- [ ] If runtime gate is not satisfied, stop and finish driver integration / report blockers first.",
         "",
     ]
 
     if blockers:
         md.extend([
-            "## Blockers (from phase2-report)",
+            "## Runtime Blockers (from phase2-report)",
             *[f"- {b}" for b in blockers],
+            "",
+        ])
+
+    if release_blockers:
+        md.extend([
+            "## Release Bootimg Follow-ups (non-blocking for runtime validation)",
+            *[f"- {b}" for b in release_blockers],
             "",
         ])
 

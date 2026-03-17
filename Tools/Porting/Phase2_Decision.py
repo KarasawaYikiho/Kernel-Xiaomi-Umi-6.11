@@ -63,16 +63,19 @@ def derive_next_action(
     ):
         next_action = "ready-for-action-test"
 
-    # Packaging/release blockers override compile-stage readiness.
-    if bootimg_status in ("missing", "size_mismatch"):
-        next_action = "prepare-release-bootimg"
-    elif flash_status == "candidate" and (
+    # Packaging blockers still override candidate readiness.
+    if flash_status == "candidate" and (
         anykernel_ok != "yes" or anykernel_validate_status not in ("ok", "unknown")
     ):
         next_action = "fix-anykernel-packaging"
 
+    # Driver integration must complete before asking for runtime validation.
     if next_action == "ready-for-action-test" and driver_integration_status != "complete":
         next_action = "integrate-drivers-phase3"
+
+    # Release boot image is a later-stage delivery gate, not a prerequisite for runtime testing.
+    if next_action == "collect-more-data" and bootimg_status in ("missing", "size_mismatch"):
+        next_action = "prepare-release-bootimg"
 
     return next_action
 
