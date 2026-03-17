@@ -47,11 +47,14 @@ Kernel-Xiaomi-Umi 是一个面向 Xiaomi 10（`umi`）内核迁移的**编排仓
 
 先运行 **`Phase2-Port-Umi.yml`** 默认参数，然后按顺序查看：
 
-1. `artifacts/phase2-report.txt`
-2. `artifacts/build-exit.txt`
-3. `artifacts/build-error-summary.txt`
-4. `artifacts/anykernel-info.txt`
-5. `artifacts/next-focus.txt`
+1. `artifacts/runtime-validation-summary.md`
+2. `artifacts/phase2-report.txt`
+3. `artifacts/status-badge-line.txt`
+4. `artifacts/action-validation-checklist.md`
+5. `artifacts/artifact-summary.md`
+6. `artifacts/next-focus.txt`
+7. `artifacts/build-error-summary.txt`
+8. `artifacts/anykernel-info.txt`
 
 ### `Phase2-Port-Umi.yml`
 

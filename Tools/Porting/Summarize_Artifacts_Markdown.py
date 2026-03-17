@@ -39,11 +39,12 @@ def main() -> int:
         f"- Consistency Errors: `{d.get('errors', '') or 'none'}`",
         "",
         "## Suggested First Files",
+        "- `runtime-validation-summary.md`",
         "- `phase2-report.txt`",
+        "- `status-badge-line.txt`",
+        "- `action-validation-checklist.md`",
         "- `build-error-summary.txt`",
-        "- `dtb-postcheck.txt`",
         "- `anykernel-info.txt`",
-        "- `anykernel-validate.txt`",
     ]
 
     if next_action == 'prepare-release-bootimg':

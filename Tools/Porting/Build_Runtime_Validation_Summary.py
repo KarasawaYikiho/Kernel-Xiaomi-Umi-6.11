@@ -105,6 +105,7 @@ def main() -> int:
 
     md.extend([
         "## First Files To Open",
+        "- `runtime-validation-summary.md`",
         "- `phase2-report.txt`",
         "- `status-badge-line.txt`",
         "- `action-validation-checklist.md`",
