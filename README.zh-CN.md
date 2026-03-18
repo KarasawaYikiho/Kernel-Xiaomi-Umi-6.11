@@ -58,6 +58,10 @@ Kernel-Xiaomi-Umi 是一个面向 Xiaomi 10（`umi`）内核迁移的**编排仓
 9. `artifacts/build-error-summary.txt`
 10. `artifacts/anykernel-info.txt`
 
+Runtime gate 说明：
+- `driver_integration_status=partial` **不一定**阻塞实机验证。
+- 如果 `next_action=ready-for-action-test` 且 `runtime_ready=yes`，则剩余的 `driver_integration_pending` 默认按 Release / ROM 对齐后续项处理，除非它们被明确列进 runtime blocker。
+
 ### `Phase2-Port-Umi.yml`
 
 核心迁移流水线，包含：

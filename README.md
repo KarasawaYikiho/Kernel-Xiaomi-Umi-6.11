@@ -49,13 +49,19 @@ Rules:
 Run **`Phase2-Port-Umi.yml`** with default inputs, then inspect artifacts in this order:
 
 1. `artifacts/runtime-validation-summary.md`
-2. `artifacts/phase2-report.txt`
-3. `artifacts/status-badge-line.txt`
-4. `artifacts/action-validation-checklist.md`
-5. `artifacts/artifact-summary.md`
-6. `artifacts/next-focus.txt`
-7. `artifacts/build-error-summary.txt`
-8. `artifacts/anykernel-info.txt`
+2. `artifacts/runtime-validation-input.md`
+3. `artifacts/runtime-validation-result.txt`
+4. `artifacts/phase2-report.txt`
+5. `artifacts/status-badge-line.txt`
+6. `artifacts/action-validation-checklist.md`
+7. `artifacts/artifact-summary.md`
+8. `artifacts/next-focus.txt`
+9. `artifacts/build-error-summary.txt`
+10. `artifacts/anykernel-info.txt`
+
+Runtime gate note:
+- `driver_integration_status=partial` does **not** automatically block device runtime validation.
+- If `next_action=ready-for-action-test` and `runtime_ready=yes`, remaining `driver_integration_pending` items are treated as release / ROM-alignment follow-ups unless they appear in the runtime blocker list.
 
 ### `Phase2-Port-Umi.yml`
 
@@ -75,6 +81,10 @@ Important inputs:
 - `bootimg_ramdisk_url` (optional)
 - `bootimg_prebuilt_url` (optional fallback)
 - `bootimg_required_bytes` (default `134217728`; set `<=0` to disable size check)
+
+After device runtime validation:
+- Fill `artifacts/runtime-validation-input.md`
+- Re-run postprocess to refresh `runtime-validation-result.txt`, `phase2-report.txt`, `next-focus.txt`, badge, metrics, and summaries
 
 ### `Build-Umi-Kernel.yml`
 

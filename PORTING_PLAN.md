@@ -29,7 +29,7 @@ Policy:
 - Phase 0: Complete
 - Phase 1: Complete
 - Phase 2: In progress (automated migration + diagnostics + packaging)
-- Current focus: runtime validation feedback loop + release `boot.img` hardening
+- Current focus: device runtime validation execution + release / ROM-alignment hardening
 
 ## Phase Checklist
 

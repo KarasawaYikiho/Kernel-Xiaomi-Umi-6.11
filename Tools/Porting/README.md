@@ -44,6 +44,7 @@ This directory contains the automation chain used by `Phase2-Port-Umi.yml`.
 
 - `next_action` — machine-friendly next step (`integrate-drivers-phase3`, `ready-for-action-test`, `prepare-release-bootimg`, `analyze-runtime-failure`, etc.)
 - `runtime_ready` — coarse gate (`yes`/`no`) for device runtime validation
+- `driver_integration_pending` — remaining driver / ROM-alignment follow-ups captured from the manifest status
 - `anykernel_validate_status` — AnyKernel candidate structure validity
 - `bootimg_status` — release boot image readiness (`ok`, `missing`, `size_mismatch`)
 - `bootimg_build_status` — boot image stage result (`ok`, `blocked`, `failed`)
@@ -57,6 +58,11 @@ This directory contains the automation chain used by `Phase2-Port-Umi.yml`.
 - `postprocess-status.txt` — per-step postprocess execution status (`ok` / `failed`)
 - `driver-integration-manifest.txt` — driver subsystem checklist (`integrated:<item>` / `pending:<item>`)
 - `driver-integration-manifest-validate.txt` — manifest format validation result
+
+## Runtime Semantics
+
+- `driver_integration_status=partial` may still be runtime-safe when the remaining pending items are limited to ROM / release alignment checks.
+- Use `runtime-validation-summary.md` and `action-validation-checklist.md` as the source of truth for whether device-side validation should proceed.
 
 ## Local Dry-Run Notes
 
