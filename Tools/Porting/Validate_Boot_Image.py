@@ -5,6 +5,9 @@ from pathlib import Path
 import hashlib
 import os
 
+ANDROID_MAGIC = b"ANDROID!"
+ZIP_MAGICS = (b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08")
+
 ART = Path("artifacts")
 OUT = ART / "bootimg-info.txt"
 DEFAULT_REQUIRED_BYTES = 134217728  # 128 MiB
@@ -42,6 +45,22 @@ def _sha256(path: Path) -> str:
     return h.hexdigest()
 
 
+def _read_prefix(path: Path, n: int = 8) -> bytes:
+    with path.open("rb") as f:
+        return f.read(n)
+
+
+def _detect_format(path: Path) -> tuple[str, str]:
+    prefix = _read_prefix(path, 8)
+    if prefix.startswith(ANDROID_MAGIC):
+        return "android_bootimg", prefix.hex()
+    if any(prefix.startswith(m) for m in ZIP_MAGICS):
+        return "zip", prefix[:4].hex()
+    if not prefix:
+        return "empty", ""
+    return "unknown", prefix.hex()
+
+
 def main() -> int:
     required_bytes, parse_note = parse_required_bytes(os.getenv("BOOTIMG_REQUIRED_BYTES"))
 
@@ -63,9 +82,19 @@ def main() -> int:
 
     size = bootimg.stat().st_size
     sha = _sha256(bootimg)
+    detected_format, header_magic = _detect_format(bootimg)
 
     # BOOTIMG_REQUIRED_BYTES is treated as the final target size.
-    if required_bytes <= 0:
+    if detected_format != "android_bootimg":
+        size_match = "yes" if (required_bytes <= 0 or size == required_bytes) else "no"
+        status = "invalid_format"
+        if detected_format == "zip":
+            reason = "bootimg-is-zip-not-android-image"
+        elif detected_format == "empty":
+            reason = "bootimg-empty"
+        else:
+            reason = "bootimg-header-unrecognized"
+    elif required_bytes <= 0:
         size_match = "yes"
         status = "ok"
         reason = "size-check-disabled"
@@ -82,8 +111,10 @@ def main() -> int:
         f"sha256={sha}",
         f"required_bytes={required_bytes}",
         f"required_bytes_parse={parse_note}",
+        f"format={detected_format}",
+        f"header_magic={header_magic}",
         f"size_match={size_match}",
-        f"flash_ready={'yes' if size_match == 'yes' else 'no'}",
+        f"flash_ready={'yes' if status == 'ok' and size_match == 'yes' else 'no'}",
     ])
     print(f"wrote {OUT}: {status}")
     return 0

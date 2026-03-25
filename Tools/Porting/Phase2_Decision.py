@@ -120,14 +120,14 @@ def derive_next_action(
     if runtime_validation_overall == "FAIL":
         next_action = "analyze-runtime-failure"
     elif runtime_validation_overall == "PASS":
-        if bootimg_status in ("missing", "size_mismatch"):
+        if bootimg_status in ("missing", "size_mismatch", "invalid_format"):
             next_action = "prepare-release-bootimg"
         elif driver_integration_status != "complete" and split_csv(driver_integration_pending):
             next_action = "integrate-drivers-phase3"
         else:
             next_action = "collect-more-data"
 
-    if next_action == "collect-more-data" and bootimg_status in ("missing", "size_mismatch"):
+    if next_action == "collect-more-data" and bootimg_status in ("missing", "size_mismatch", "invalid_format"):
         next_action = "prepare-release-bootimg"
 
     return next_action

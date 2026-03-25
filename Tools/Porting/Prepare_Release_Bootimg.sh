@@ -26,6 +26,22 @@ fetch_file() {
   return 1
 }
 
+is_android_boot_image() {
+  local path="$1"
+  [[ -f "$path" ]] || return 1
+  local magic
+  magic="$(dd if="$path" bs=8 count=1 2>/dev/null | tr -d '\0' || true)"
+  [[ "$magic" == "ANDROID!" ]]
+}
+
+is_zip_file() {
+  local path="$1"
+  [[ -f "$path" ]] || return 1
+  local sig
+  sig="$(dd if="$path" bs=4 count=1 2>/dev/null | xxd -p -c 4 || true)"
+  [[ "$sig" == "504b0304" || "$sig" == "504b0506" || "$sig" == "504b0708" ]]
+}
+
 # kernel
 if [[ -f out/arch/arm64/boot/Image.gz ]]; then
   kernel_path="out/arch/arm64/boot/Image.gz"
@@ -129,16 +145,21 @@ required_bytes="${BOOTIMG_REQUIRED_BYTES:-134217728}"
 if [[ -n "$prebuilt_url" ]]; then
   out_boot="$ART/boot.img"
   prebuilt_dl="$ART/prebuilt-download"
+  tmp_boot="$ART/prebuilt-boot.img"
+  rm -f "$out_boot" "$tmp_boot"
   if fetch_file "$prebuilt_url" "$prebuilt_dl"; then
-    # direct boot.img
-    if file "$prebuilt_dl" 2>/dev/null | grep -Eiq 'Android bootimg|data'; then
+    # direct boot.img: require real Android boot header, do not accept generic "data"
+    if is_android_boot_image "$prebuilt_dl"; then
       mv -f "$prebuilt_dl" "$out_boot"
-    # archive fallback: try to extract boot.img from zip
-    elif [[ "$prebuilt_url" == *.zip* ]] && command -v unzip >/dev/null 2>&1; then
-      unzip -p "$prebuilt_dl" "*boot.img" > "$out_boot" 2>/dev/null || true
+    # archive fallback: extract boot.img from zip and validate the extracted payload
+    elif is_zip_file "$prebuilt_dl" && command -v unzip >/dev/null 2>&1; then
+      unzip -p "$prebuilt_dl" "*boot.img" > "$tmp_boot" 2>/dev/null || true
+      if is_android_boot_image "$tmp_boot"; then
+        mv -f "$tmp_boot" "$out_boot"
+      fi
     fi
   fi
-  if [[ -f "$out_boot" ]]; then
+  if [[ -f "$out_boot" ]] && is_android_boot_image "$out_boot"; then
     size="$(stat -c%s "$out_boot" 2>/dev/null || wc -c < "$out_boot")"
     final_reason="prebuilt-bootimg-downloaded"
     if [[ "$required_bytes" =~ ^[0-9]+$ ]] && [[ "$required_bytes" -gt 0 ]]; then
@@ -168,6 +189,23 @@ if [[ -n "$prebuilt_url" ]]; then
       echo "prebuilt_url=$prebuilt_url"
     } > "$OUT"
     echo "bootimg prepared: $out_boot ($size bytes)"
+    exit 0
+  elif [[ -f "$prebuilt_dl" ]]; then
+    {
+      echo "status=blocked"
+      echo "reason=prebuilt-not-android-bootimg"
+      echo "missing=valid_prebuilt_bootimg"
+      echo "kernel_path=$kernel_path"
+      echo "ramdisk_path=$ramdisk_path"
+      echo "dtb_path=$dtb_path"
+      echo "mkbootimg_cmd=$mkbootimg_cmd"
+      echo "header_version=$header_version"
+      echo "base=$base"
+      echo "pagesize=$pagesize"
+      echo "source=prebuilt_url"
+      echo "prebuilt_url=$prebuilt_url"
+    } > "$OUT"
+    echo "bootimg build blocked: prebuilt payload is not a valid Android boot image"
     exit 0
   fi
 fi
