@@ -46,7 +46,7 @@ This directory contains the automation chain used by `Phase2-Port-Umi.yml`.
 - `runtime_ready` — coarse gate (`yes`/`no`) for device runtime validation
 - `driver_integration_pending` — remaining driver / ROM-alignment follow-ups captured from the manifest status
 - `anykernel_validate_status` — AnyKernel candidate structure validity
-- `bootimg_status` — release boot image readiness (`ok`, `missing`, `size_mismatch`)
+- `bootimg_status` — release boot image readiness (`ok`, `missing`, `size_mismatch`, `invalid_format`)
 - `bootimg_build_status` — boot image stage result (`ok`, `blocked`, `failed`)
 - `bootimg_required_bytes` — target size (default `134217728`; `<=0` disables size gate)
 - `bootimg_required_bytes_parse` — parse state (`exact`, `default-empty`, `default-invalid`, `unknown`)
@@ -63,6 +63,7 @@ This directory contains the automation chain used by `Phase2-Port-Umi.yml`.
 
 - `driver_integration_status=partial` may still be runtime-safe when the remaining pending items are limited to ROM / release alignment checks.
 - Use `runtime-validation-summary.md` and `action-validation-checklist.md` as the source of truth for whether device-side validation should proceed.
+- `bootimg_status=invalid_format` means the produced `boot.img` failed header/format validation (for example, a ZIP payload masquerading as `boot.img`) and must be routed back to `prepare-release-bootimg` instead of being treated as release-ready.
 
 ## Local Dry-Run Notes
 

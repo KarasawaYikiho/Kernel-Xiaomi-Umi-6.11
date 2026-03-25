@@ -113,6 +113,23 @@ def main() -> int:
             "prepare-release-bootimg",
             "no",
         ),
+        (
+            "invalid-bootimg-format-after-runtime-pass",
+            dict(
+                defconfig_rc="0",
+                build_rc="0",
+                dtbs_rc="0",
+                flash_status="candidate",
+                anykernel_ok="yes",
+                anykernel_validate_status="ok",
+                bootimg_status="invalid_format",
+                driver_integration_status="complete",
+                driver_integration_pending="",
+                runtime_validation_overall="PASS",
+            ),
+            "prepare-release-bootimg",
+            "no",
+        ),
     ]
 
     for name, kwargs, expected_action, expected_runtime in cases:
