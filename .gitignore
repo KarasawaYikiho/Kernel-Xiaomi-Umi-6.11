@@ -1,0 +1,13 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Build/work artifacts
+artifacts/
+out/
+source/
+target/
+
+# Local editor/OS noise
+.DS_Store
+Thumbs.db

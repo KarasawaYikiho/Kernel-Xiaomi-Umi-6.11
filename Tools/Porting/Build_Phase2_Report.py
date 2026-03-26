@@ -1,0 +1,115 @@
+#!/usr/bin/env python3
+from pathlib import Path
+
+from Kv_Utils import parse_kv
+from Phase2_Decision import (
+    DEFAULT_BOOTIMG_REQUIRED_BYTES_STR,
+    derive_next_action,
+    derive_runtime_ready,
+)
+
+ART = Path("artifacts")
+OUT = ART / "phase2-report.txt"
+
+
+def main() -> int:
+    ART.mkdir(parents=True, exist_ok=True)
+
+    summary = parse_kv(ART / "summary.txt")
+    pack = parse_kv(ART / "umi_bundle" / "pack-info.txt")
+    flash = parse_kv(ART / "flash-readiness.txt")
+    dtb = parse_kv(ART / "dtb-postcheck.txt")
+    anyk = parse_kv(ART / "anykernel-info.txt")
+    anyk_val = parse_kv(ART / "anykernel-validate.txt")
+    boot = parse_kv(ART / "bootimg-info.txt")
+    boot_build = parse_kv(ART / "bootimg-build.txt")
+    missa = parse_kv(ART / "dtb-miss-analysis.txt")
+    bexit = parse_kv(ART / "build-exit.txt")
+    complete = parse_kv(ART / "artifact-completeness.txt")
+    driver = parse_kv(ART / "driver-integration-status.txt")
+    runtime_result = parse_kv(ART / "runtime-validation-result.txt")
+
+    # derive a simple decision hint for next step automation
+    flash_status = flash.get("status", "unknown")
+    anykernel_ok = anyk.get("anykernel_ok", "no")
+    hit_ratio = dtb.get("hit_ratio", "0.000")
+    def_rc = bexit.get("defconfig_rc", "n/a")
+    build_rc = bexit.get("build_rc", "n/a")
+    dtbs_rc = bexit.get("dtbs_rc", "n/a")
+
+    anyk_val_status = anyk_val.get("status", "unknown")
+    next_action = derive_next_action(
+        defconfig_rc=def_rc,
+        build_rc=build_rc,
+        dtbs_rc=dtbs_rc,
+        flash_status=flash_status,
+        anykernel_ok=anykernel_ok,
+        anykernel_validate_status=anyk_val_status,
+        bootimg_status=boot.get("status", "missing"),
+        driver_integration_status=driver.get("status", "pending"),
+        driver_integration_pending=driver.get("pending", ""),
+        runtime_validation_overall=runtime_result.get("overall", "UNKNOWN"),
+    )
+    runtime_ready = derive_runtime_ready(next_action)
+
+    lines = [
+        "phase2_report=1",
+        f"device={pack.get('device', summary.get('device', 'unknown'))}",
+        f"defconfig_rc={bexit.get('defconfig_rc', 'n/a')}",
+        f"build_rc={bexit.get('build_rc', 'n/a')}",
+        f"dtbs_rc={bexit.get('dtbs_rc', 'n/a')}",
+        f"dts_copied={summary.get('dts_copied', '0')}",
+        f"dts_only_copied={summary.get('dts_only_copied', '0')}",
+        f"dtsi_only_copied={summary.get('dtsi_only_copied', '0')}",
+        f"umi_bundle_xiaomi_dtb_count={pack.get('umi_bundle_xiaomi_dtb_count', '0')}",
+        f"flash_status={flash.get('status', 'unknown')}",
+        f"flash_reason={flash.get('reason', 'n/a')}",
+        f"release_status={flash.get('release_status', 'unknown')}",
+        f"release_reason={flash.get('release_reason', 'n/a')}",
+        f"manifest_wanted={dtb.get('wanted', '0')}",
+        f"manifest_hit={dtb.get('hit', '0')}",
+        f"manifest_miss={dtb.get('miss', '0')}",
+        f"manifest_hit_ratio={hit_ratio}",
+        f"anykernel_ok={anykernel_ok}",
+        f"anykernel_has_imagegz={anyk.get('has_imagegz', 'no')}",
+        f"anykernel_has_dtb={anyk.get('has_dtb', 'no')}",
+        f"anykernel_dtb_source={anyk.get('dtb_source', '')}",
+        f"anykernel_validate_status={anyk_val.get('status', 'unknown')}",
+        f"anykernel_validate_reason={anyk_val.get('reason', 'n/a')}",
+        f"bootimg_status={boot.get('status', 'missing')}",
+        f"bootimg_reason={boot.get('reason', 'n/a')}",
+        f"bootimg_size_bytes={boot.get('size_bytes', '0')}",
+        f"bootimg_required_bytes={boot.get('required_bytes', DEFAULT_BOOTIMG_REQUIRED_BYTES_STR)}",
+        f"bootimg_required_bytes_parse={boot.get('required_bytes_parse', 'unknown')}",
+        f"bootimg_size_match={boot.get('size_match', 'no')}",
+        f"bootimg_rom_expected_size_bytes={boot.get('rom_expected_size_bytes', '')}",
+        f"bootimg_rom_expected_sha256={boot.get('rom_expected_sha256', '')}",
+        f"bootimg_rom_size_match={boot.get('rom_size_match', 'unknown')}",
+        f"bootimg_rom_sha256_match={boot.get('rom_sha256_match', 'unknown')}",
+        f"bootimg_build_status={boot_build.get('status', 'unknown')}",
+        f"bootimg_build_reason={boot_build.get('reason', 'n/a')}",
+        f"bootimg_build_missing={boot_build.get('missing', '')}",
+        f"miss_bucket_total={missa.get('bucket_total', '0')}",
+        f"miss_top_buckets={missa.get('top_buckets', '')}",
+        f"artifact_completeness={complete.get('status', 'unknown')}",
+        f"required_missing={complete.get('required_missing', 'n/a')}",
+        f"driver_integration_status={driver.get('status', 'pending')}",
+        f"driver_integration_reason={driver.get('reason', 'n/a')}",
+        f"driver_integration_pending={driver.get('pending', '')}",
+        f"runtime_validation_status={runtime_result.get('status', 'missing_input')}",
+        f"runtime_validation_overall={runtime_result.get('overall', 'UNKNOWN')}",
+        f"runtime_validation_failed_step={runtime_result.get('failed_step', '')}",
+        f"runtime_validation_pass_count={runtime_result.get('pass_count', '0')}",
+        f"runtime_validation_fail_count={runtime_result.get('fail_count', '0')}",
+        f"runtime_validation_unknown_count={runtime_result.get('unknown_count', '0')}",
+        f"next_action={next_action}",
+        f"runtime_ready={runtime_ready}",
+    ]
+
+    OUT.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"wrote {OUT}")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

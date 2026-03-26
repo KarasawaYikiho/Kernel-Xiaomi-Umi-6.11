@@ -1,0 +1,107 @@
+name: Build Xiaomi 10 (umi) Kernel (Reference-style)
+
+on:
+  workflow_dispatch:
+    inputs:
+      kernel_repo:
+        description: "Kernel source repo URL (GitHub)"
+        required: true
+        default: "https://github.com/SO-TS/android_kernel_xiaomi_sm8250.git"
+      kernel_branch:
+        description: "Kernel branch"
+        required: true
+        default: "android16-aptusitu"
+      device:
+        description: "Target Device Codename"
+        required: true
+        default: "umi"
+        type: choice
+        options:
+          - psyche
+          - thyme
+          - umi
+          - munch
+          - lmi
+          - cmi
+          - cas
+          - apollo
+          - alioth
+          - elish
+          - enuma
+          - dagu
+          - pipa
+      ksu:
+        description: "Enable KernelSU"
+        required: true
+        type: boolean
+        default: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout builder repo
+        uses: actions/checkout@v5
+
+      - name: Cleanup disk
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential git curl wget bison flex zip bc cpio libssl-dev ccache python-is-python3
+          sudo apt-get install -y gcc-aarch64-linux-gnu gcc-arm-linux-gnueabi
+
+      - name: Setup cache (ccache)
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ccache_mikernel
+          key: kernel-ccache-${{ github.event.inputs.device }}-${{ github.run_id }}
+          restore-keys: |
+            kernel-ccache-${{ github.event.inputs.device }}-
+            kernel-ccache-
+
+      - name: Setup Toolchain (ZyC-Clang 15)
+        run: |
+          mkdir -p $HOME/zyc-clang
+          cd $HOME/zyc-clang
+          wget -q https://github.com/ZyCromerZ/Clang/releases/download/15.0.7-20251111-release/Clang-15.0.7-20251111.tar.gz
+          tar -zxf Clang-15.0.7-20251111.tar.gz
+
+      - name: Clone kernel source
+        run: |
+          git clone --depth=1 --branch "${{ github.event.inputs.kernel_branch }}" "${{ github.event.inputs.kernel_repo }}" kernel
+
+      - name: Build kernel
+        working-directory: kernel
+        run: |
+          chmod +x build.sh
+          if [ "${{ github.event.inputs.ksu }}" = "true" ]; then
+            bash build.sh "${{ github.event.inputs.device }}" ksu
+          else
+            bash build.sh "${{ github.event.inputs.device }}"
+          fi
+
+      - name: Collect artifacts
+        run: |
+          mkdir -p artifacts
+          cp -v kernel/*.zip artifacts/ || true
+          cp -v kernel/out/.config artifacts/ || true
+          cp -v kernel/out/arch/arm64/boot/Image artifacts/ || true
+          cp -v kernel/out/arch/arm64/boot/dtb artifacts/ || true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: Kernel-${{ github.event.inputs.device }}-${{ github.run_number }}
+          path: artifacts/
+          if-no-files-found: error
