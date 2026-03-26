@@ -35,7 +35,7 @@ def main() -> int:
         f"- Build RC: `{r.get('build_rc', 'n/a')}` (defconfig `{r.get('defconfig_rc', 'n/a')}`)",
         f"- Flash Status: `{r.get('flash_status', 'unknown')}`",
         f"- Release Status: `{r.get('release_status', 'unknown')}` ({r.get('release_reason', 'n/a')})",
-        f"- AnyKernel OK: `{r.get('anykernel_ok', 'no')}`",
+        f"- AnyKernel OK: `{r.get('anykernel_ok', 'no')}` ({r.get('anykernel_reason', 'n/a')})",
         f"- AnyKernel Validate: `{r.get('anykernel_validate_status', 'unknown')}` ({r.get('anykernel_validate_reason', 'n/a')})",
         f"- Manifest Hit Ratio: `{r.get('manifest_hit_ratio', '0.000')}`",
         f"- Artifact Completeness: `{c.get('status', 'unknown')}`",

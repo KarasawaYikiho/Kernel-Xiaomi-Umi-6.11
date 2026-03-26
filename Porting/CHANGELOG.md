@@ -11,6 +11,7 @@
 - Hardened shell entrypoints to auto-detect `python3` or `python`, so local Windows reruns of postprocess/build helpers no longer fail just because `python3` is absent.
 - Added local postprocess fallback metadata and downgraded artifact completeness to `partial` when Phase2-only build artifacts are absent, preventing misleading DTB-focused next-step recommendations on ROM-only validation runs.
 - Made DTB manifest collection and artifact packaging more resilient for weak/local environments by keeping empty DTB outputs explicit, enriching AnyKernel reasons, and skipping zip packaging gracefully when the host lacks `zip`.
+- Improved AnyKernel candidate diagnostics to reuse existing templates, fall back to `artifacts/Image.gz`, and surface the exact packaging blocker in reports, badges, and metrics.
 
 ## 2026-03-11
 

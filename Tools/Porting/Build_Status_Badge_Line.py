@@ -15,6 +15,7 @@ def main() -> int:
     build_rc = r.get("build_rc", "n/a")
     flash = r.get("flash_status", "unknown")
     anyk = r.get("anykernel_ok", "no")
+    anyk_reason = r.get("anykernel_reason", "n/a")
     anyk_val = r.get("anykernel_validate_status", "unknown")
     ratio = r.get("manifest_hit_ratio", "0.000")
     next_action = r.get("next_action", "collect-more-data")
@@ -41,7 +42,7 @@ def main() -> int:
     runtime_result_suffix = f"/{failed_step}" if failed_step else ""
 
     line = (
-        f"build={build_rc} | flash={flash} | anykernel={anyk}/{anyk_val} "
+        f"build={build_rc} | flash={flash} | anykernel={anyk}/{anyk_reason}/{anyk_val} "
         f"| driver_integration={driver_integration} | runtime_gate={runtime_gate} "
         f"| runtime_result={runtime_result}{runtime_result_suffix} "
         f"| runtime_ready={runtime_ready}({runtime_marker}) | release={release_status} "

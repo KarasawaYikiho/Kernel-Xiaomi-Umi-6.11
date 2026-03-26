@@ -51,6 +51,9 @@ def main() -> int:
             "release_status": report.get("release_status", "unknown"),
             "release_reason": report.get("release_reason", "n/a"),
             "anykernel_ok": report.get("anykernel_ok", "no"),
+            "anykernel_reason": report.get("anykernel_reason", "n/a"),
+            "anykernel_imagegz_path": report.get("anykernel_imagegz_path", ""),
+            "anykernel_template_source": report.get("anykernel_template_source", ""),
             "anykernel_validate_status": report.get(
                 "anykernel_validate_status", "unknown"
             ),
