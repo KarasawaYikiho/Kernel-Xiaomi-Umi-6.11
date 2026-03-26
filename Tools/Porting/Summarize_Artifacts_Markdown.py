@@ -17,7 +17,16 @@ def main() -> int:
     rv = parse_kv(ART / "runtime-validation-result.txt")
 
     next_action = r.get("next_action", "")
-    runtime_gate = "ready" if r.get("runtime_ready", "no") == "yes" and driver_integration_allows_runtime(r.get("driver_integration_status", "pending"), r.get("driver_integration_pending", "")) and d.get("status", "unknown") in ("ok", "unknown") else "blocked"
+    runtime_gate = (
+        "ready"
+        if r.get("runtime_ready", "no") == "yes"
+        and driver_integration_allows_runtime(
+            r.get("driver_integration_status", "pending"),
+            r.get("driver_integration_pending", ""),
+        )
+        and d.get("status", "unknown") in ("ok", "unknown")
+        else "blocked"
+    )
 
     md = [
         "# Phase2 Artifact Summary",
@@ -25,6 +34,7 @@ def main() -> int:
         f"- Device: `{r.get('device', 'unknown')}`",
         f"- Build RC: `{r.get('build_rc', 'n/a')}` (defconfig `{r.get('defconfig_rc', 'n/a')}`)",
         f"- Flash Status: `{r.get('flash_status', 'unknown')}`",
+        f"- Release Status: `{r.get('release_status', 'unknown')}` ({r.get('release_reason', 'n/a')})",
         f"- AnyKernel OK: `{r.get('anykernel_ok', 'no')}`",
         f"- AnyKernel Validate: `{r.get('anykernel_validate_status', 'unknown')}` ({r.get('anykernel_validate_reason', 'n/a')})",
         f"- Manifest Hit Ratio: `{r.get('manifest_hit_ratio', '0.000')}`",
@@ -37,6 +47,7 @@ def main() -> int:
         f"- Runtime Validation Result: `{rv.get('overall', 'UNKNOWN')}` ({rv.get('status', 'missing_input')})",
         f"- Runtime Validation Failed Step: `{rv.get('failed_step', '') or 'none'}`",
         f"- Boot Image: `{r.get('bootimg_status', 'missing')}` ({r.get('bootimg_reason', 'n/a')}) - release follow-up",
+        f"- Boot Image ROM Match: `size={r.get('bootimg_rom_size_match', 'unknown')}` `sha256={r.get('bootimg_rom_sha256_match', 'unknown')}`",
         f"- Boot Image Build: `{r.get('bootimg_build_status', 'unknown')}` ({r.get('bootimg_build_reason', 'n/a')})",
         "",
         "## Next Focus",
@@ -56,23 +67,29 @@ def main() -> int:
     ]
 
     if next_action == "prepare-release-bootimg":
-        md.extend([
-            "- `bootimg-info.txt`",
-            "- `bootimg-build.txt`",
-        ])
+        md.extend(
+            [
+                "- `bootimg-info.txt`",
+                "- `bootimg-build.txt`",
+            ]
+        )
 
     if next_action == "integrate-drivers-phase3":
-        md.extend([
-            "- `driver-integration-status.txt`",
-            "- `Porting/Reference-Drivers-Analysis.md`",
-            "- `Porting/OfficialRom-Umi-Os1.0.5.0-Analysis.md`",
-        ])
+        md.extend(
+            [
+                "- `driver-integration-status.txt`",
+                "- `Porting/Reference-Drivers-Analysis.md`",
+                "- `Porting/OfficialRom-Umi-Os1.0.5.0-Analysis.md`",
+            ]
+        )
 
     if r.get("runtime_ready", "no") == "yes":
-        md.extend([
-            "- `action-validation-checklist.md`",
-            "- `runtime-validation-summary.md`",
-        ])
+        md.extend(
+            [
+                "- `action-validation-checklist.md`",
+                "- `runtime-validation-summary.md`",
+            ]
+        )
 
     OUT.write_text("\n".join(md) + "\n", encoding="utf-8")
     print(f"wrote {OUT}")

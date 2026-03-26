@@ -4,12 +4,14 @@ from __future__ import annotations
 from pathlib import Path
 import hashlib
 import os
+import re
 
 ANDROID_MAGIC = b"ANDROID!"
 ZIP_MAGICS = (b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08")
 
 ART = Path("artifacts")
 OUT = ART / "bootimg-info.txt"
+ROM_ANALYSIS = Path("Porting/OfficialRom-Umi-Os1.0.5.0-Analysis.md")
 DEFAULT_REQUIRED_BYTES = 134217728  # 128 MiB
 
 
@@ -61,28 +63,55 @@ def _detect_format(path: Path) -> tuple[str, str]:
     return "unknown", prefix.hex()
 
 
+def _load_rom_boot_reference() -> tuple[str, str]:
+    if not ROM_ANALYSIS.exists():
+        return "", ""
+    text = ROM_ANALYSIS.read_text(encoding="utf-8", errors="ignore")
+    m = re.search(
+        r"`boot\.img`: size=`(\d+)` sha256=`([0-9a-f]{64})`", text, re.IGNORECASE
+    )
+    if not m:
+        return "", ""
+    return m.group(1), m.group(2).lower()
+
+
 def main() -> int:
-    required_bytes, parse_note = parse_required_bytes(os.getenv("BOOTIMG_REQUIRED_BYTES"))
+    required_bytes, parse_note = parse_required_bytes(
+        os.getenv("BOOTIMG_REQUIRED_BYTES")
+    )
+    rom_expected_size, rom_expected_sha = _load_rom_boot_reference()
 
     bootimg = ART / "boot.img"
     if not bootimg.exists():
-        write_kv([
-            "status=missing",
-            "reason=bootimg-not-found",
-            "path=",
-            "size_bytes=0",
-            "sha256=",
-            f"required_bytes={required_bytes}",
-            f"required_bytes_parse={parse_note}",
-            "size_match=no",
-            "flash_ready=no",
-        ])
+        write_kv(
+            [
+                "status=missing",
+                "reason=bootimg-not-found",
+                "path=",
+                "size_bytes=0",
+                "sha256=",
+                f"required_bytes={required_bytes}",
+                f"required_bytes_parse={parse_note}",
+                f"rom_expected_size_bytes={rom_expected_size}",
+                f"rom_expected_sha256={rom_expected_sha}",
+                "rom_size_match=unknown",
+                "rom_sha256_match=unknown",
+                "size_match=no",
+                "flash_ready=no",
+            ]
+        )
         print(f"wrote {OUT}: missing")
         return 0
 
     size = bootimg.stat().st_size
     sha = _sha256(bootimg)
     detected_format, header_magic = _detect_format(bootimg)
+    rom_size_match = "unknown"
+    rom_sha_match = "unknown"
+    if rom_expected_size:
+        rom_size_match = "yes" if str(size) == rom_expected_size else "no"
+    if rom_expected_sha:
+        rom_sha_match = "yes" if sha == rom_expected_sha else "no"
 
     # BOOTIMG_REQUIRED_BYTES is treated as the final target size.
     if detected_format != "android_bootimg":
@@ -103,19 +132,25 @@ def main() -> int:
         status = "ok" if size_match == "yes" else "size_mismatch"
         reason = "release-ready-size-ok" if size_match == "yes" else "size-not-target"
 
-    write_kv([
-        f"status={status}",
-        f"reason={reason}",
-        f"path={bootimg.as_posix()}",
-        f"size_bytes={size}",
-        f"sha256={sha}",
-        f"required_bytes={required_bytes}",
-        f"required_bytes_parse={parse_note}",
-        f"format={detected_format}",
-        f"header_magic={header_magic}",
-        f"size_match={size_match}",
-        f"flash_ready={'yes' if status == 'ok' and size_match == 'yes' else 'no'}",
-    ])
+    write_kv(
+        [
+            f"status={status}",
+            f"reason={reason}",
+            f"path={bootimg.as_posix()}",
+            f"size_bytes={size}",
+            f"sha256={sha}",
+            f"required_bytes={required_bytes}",
+            f"required_bytes_parse={parse_note}",
+            f"format={detected_format}",
+            f"header_magic={header_magic}",
+            f"size_match={size_match}",
+            f"rom_expected_size_bytes={rom_expected_size}",
+            f"rom_expected_sha256={rom_expected_sha}",
+            f"rom_size_match={rom_size_match}",
+            f"rom_sha256_match={rom_sha_match}",
+            f"flash_ready={'yes' if status == 'ok' and size_match == 'yes' else 'no'}",
+        ]
+    )
     print(f"wrote {OUT}: {status}")
     return 0
 

@@ -15,6 +15,8 @@ PRIORITY_ORDER = [
     "next-focus.txt",
     "build-error-summary.txt",
     "anykernel-info.txt",
+    "bootimg-info.txt",
+    "bootimg-build.txt",
 ]
 
 

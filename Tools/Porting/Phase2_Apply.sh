@@ -9,6 +9,19 @@ SRC_DIR="${1:?source dir required}"
 DST_DIR="${2:?target dir required}"
 DEVICE="${3:-umi}"
 
+python_cmd=""
+for cand in python3 python; do
+  if command -v "$cand" >/dev/null 2>&1 && "$cand" -V >/dev/null 2>&1; then
+    python_cmd="$cand"
+    break
+  fi
+done
+
+if [[ -z "$python_cmd" ]]; then
+  echo "[phase2] ERROR: python interpreter not found" >&2
+  exit 1
+fi
+
 log() { echo "[phase2] $*"; }
 
 PORT_DIR="$DST_DIR/Porting/phase2"
@@ -60,7 +73,7 @@ patch_led_color_compat() {
   fi
 
   if ! grep -q "OC_PHASE2_LED_COLOR_COMPAT" "$f"; then
-    python3 - "$f" <<'PY'
+    "$python_cmd" - "$f" <<'PY'
 from pathlib import Path
 p = Path(__import__('sys').argv[1])
 s = p.read_text(encoding='utf-8', errors='ignore')
@@ -80,7 +93,7 @@ patch_led_color_compat "$DST_DIR/drivers/leds/led-class.c"
 HID_APPLE="$DST_DIR/drivers/hid/hid-apple.c"
 if [[ -f "$HID_APPLE" ]] && grep -q "LED_FUNCTION_KBD_BACKLIGHT" "$HID_APPLE"; then
   if ! grep -q "OC_PHASE2_LED_FUNCTION_COMPAT" "$HID_APPLE"; then
-    python3 - "$HID_APPLE" <<'PY'
+    "$python_cmd" - "$HID_APPLE" <<'PY'
 from pathlib import Path
 p = Path(__import__('sys').argv[1])
 s = p.read_text(encoding='utf-8', errors='ignore')
@@ -115,7 +128,7 @@ fi
 HID_NINTENDO="$DST_DIR/drivers/hid/hid-nintendo.c"
 if [[ -f "$HID_NINTENDO" ]] && grep -q "LED_FUNCTION_PLAYER1" "$HID_NINTENDO"; then
   if ! grep -q "OC_PHASE2_LED_FUNCTION_PLAYER_COMPAT" "$HID_NINTENDO"; then
-    python3 - "$HID_NINTENDO" <<'PY'
+    "$python_cmd" - "$HID_NINTENDO" <<'PY'
 from pathlib import Path
 p = Path(__import__('sys').argv[1])
 s = p.read_text(encoding='utf-8', errors='ignore')

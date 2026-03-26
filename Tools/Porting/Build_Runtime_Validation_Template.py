@@ -7,6 +7,10 @@ OUT = ART / "runtime-validation-input.md"
 
 def main() -> int:
     ART.mkdir(parents=True, exist_ok=True)
+    if OUT.exists():
+        print(f"kept existing {OUT}")
+        return 0
+
     lines = [
         "# Runtime Validation Input",
         "",

@@ -6,6 +6,19 @@ set -euo pipefail
 
 DEVICE="${1:-umi}"
 
+python_cmd=""
+for cand in python3 python; do
+  if command -v "$cand" >/dev/null 2>&1 && "$cand" -V >/dev/null 2>&1; then
+    python_cmd="$cand"
+    break
+  fi
+done
+
+if [[ -z "$python_cmd" ]]; then
+  echo "python interpreter not found" >&2
+  exit 1
+fi
+
 mkdir -p artifacts/umi_bundle
 cp -v target/Porting/phase2/summary.txt artifacts/ || true
 cp -v target/Porting/phase2/copied_dts.txt artifacts/ || true
@@ -21,7 +34,7 @@ cp -v out/boot.img artifacts/ || true
 find out/arch/arm64/boot/dts -type f \( -name '*.dtb' -o -name '*.dtbo' \) > artifacts/all_dtb_paths.txt || true
 
 # build manifest from migrated dts list (preferred)
-python3 Tools/Porting/Build_Dtb_Manifest.py || true
+"$python_cmd" Tools/Porting/Build_Dtb_Manifest.py || true
 
 # pick paths by manifest first
 : > artifacts/umi_primary_dtb_paths.txt
@@ -32,8 +45,8 @@ if [ -s artifacts/target_dtb_manifest.txt ]; then
   done < artifacts/target_dtb_manifest.txt
 fi
 
-python3 Tools/Porting/Dtb_Postcheck.py || true
-python3 Tools/Porting/Analyze_Dtb_Miss.py || true
+"$python_cmd" Tools/Porting/Dtb_Postcheck.py || true
+"$python_cmd" Tools/Porting/Analyze_Dtb_Miss.py || true
 
 # fallback 1: strict umi/xiaomi/sm8250 path matching
 if [ ! -s artifacts/umi_primary_dtb_paths.txt ]; then
@@ -76,4 +89,4 @@ fi
 } > artifacts/umi_bundle/pack-info.txt
 
 (cd artifacts/umi_bundle && zip -r ../phase2-umi-focused-package.zip .)
-python3 Tools/Porting/Evaluate_Artifact.py || true
+"$python_cmd" Tools/Porting/Evaluate_Artifact.py || true

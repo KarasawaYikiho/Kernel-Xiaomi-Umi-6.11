@@ -6,6 +6,19 @@ set -euo pipefail
 
 DEVICE="${1:-umi}"
 
+python_cmd=""
+for cand in python3 python; do
+  if command -v "$cand" >/dev/null 2>&1 && "$cand" -V >/dev/null 2>&1; then
+    python_cmd="$cand"
+    break
+  fi
+done
+
+if [[ -z "$python_cmd" ]]; then
+  echo "python interpreter not found" > artifacts/make-dtb-manifest.log
+  exit 1
+fi
+
 mkdir -p out artifacts
 set +e
 make -C target O=$PWD/out LLVM=1 LLVM_IAS=1 "${DEVICE}_defconfig" > artifacts/make-defconfig.log 2>&1
@@ -16,7 +29,7 @@ make -C target O=$PWD/out LLVM=1 LLVM_IAS=1 -j"$(nproc)" Image.gz modules > arti
 rc2=$?
 
 # Build preferred DTBs from migrated manifest first (non-fatal for phase2 progression)
-python3 Tools/Porting/Build_Dtb_Manifest.py > artifacts/make-dtb-manifest.log 2>&1
+"$python_cmd" Tools/Porting/Build_Dtb_Manifest.py > artifacts/make-dtb-manifest.log 2>&1
 rc_manifest=$?
 rc3=0
 : > artifacts/make-target-dtbs.log

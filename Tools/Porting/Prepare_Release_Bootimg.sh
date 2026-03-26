@@ -8,6 +8,7 @@ set -euo pipefail
 ART=artifacts
 mkdir -p "$ART"
 OUT="$ART/bootimg-build.txt"
+DEFAULT_OFFICIAL_ROM_ZIP='D:\GIT\MIUI_UMI_OS1.0.5.0.TJBCNXM_d01651ed86_13.0.zip'
 
 kernel_path=""
 ramdisk_path="${BOOTIMG_RAMDISK_PATH:-}"
@@ -15,6 +16,8 @@ ramdisk_url="${BOOTIMG_RAMDISK_URL:-}"
 prebuilt_url="${BOOTIMG_PREBUILT_URL:-}"
 dtb_path="${BOOTIMG_DTB_PATH:-}"
 mkbootimg_cmd=""
+official_rom_zip="${OFFICIAL_ROM_ZIP:-$DEFAULT_OFFICIAL_ROM_ZIP}"
+python_cmd=""
 
 fetch_file() {
   local url="$1"; local out="$2"
@@ -40,6 +43,144 @@ is_zip_file() {
   local sig
   sig="$(dd if="$path" bs=4 count=1 2>/dev/null | xxd -p -c 4 || true)"
   [[ "$sig" == "504b0304" || "$sig" == "504b0506" || "$sig" == "504b0708" ]]
+}
+
+detect_python() {
+  local cand
+  for cand in python3 python; do
+    if command -v "$cand" >/dev/null 2>&1 && "$cand" -V >/dev/null 2>&1; then
+      python_cmd="$cand"
+      return 0
+    fi
+  done
+  return 1
+}
+
+resolve_mkbootimg() {
+  detect_python || true
+
+  if command -v mkbootimg >/dev/null 2>&1; then
+    mkbootimg_cmd="mkbootimg"
+  elif [[ -x "$HOME/.local/bin/mkbootimg" ]]; then
+    mkbootimg_cmd="$HOME/.local/bin/mkbootimg"
+  elif [[ -x "$HOME/.local/bin/mkbootimg.py" ]]; then
+    mkbootimg_cmd="$HOME/.local/bin/mkbootimg.py"
+  elif [[ -n "$python_cmd" && -f source/Tools/mkbootimg/mkbootimg.py ]]; then
+    mkbootimg_cmd="$python_cmd source/Tools/mkbootimg/mkbootimg.py"
+  elif [[ -n "$python_cmd" && -f target/Tools/mkbootimg/mkbootimg.py ]]; then
+    mkbootimg_cmd="$python_cmd target/Tools/mkbootimg/mkbootimg.py"
+  elif [[ -n "$python_cmd" ]]; then
+    py_mkbootimg="$($python_cmd - <<'PY'
+import importlib.util
+print('ok' if importlib.util.find_spec('mkbootimg') else 'no')
+PY
+)"
+    if [[ "$py_mkbootimg" == "ok" ]]; then
+      mkbootimg_cmd="$python_cmd -m mkbootimg"
+    fi
+  fi
+
+  if [[ -z "$mkbootimg_cmd" && -n "$python_cmd" ]]; then
+    fetched="$ART/mkbootimg.py"
+    fetch_urls=(
+      "https://raw.githubusercontent.com/aosp-mirror/platform_system_tools_mkbootimg/master/mkbootimg.py"
+      "https://android.googlesource.com/platform/system/Tools/mkbootimg/+/refs/heads/master/mkbootimg.py?format=TEXT"
+    )
+    for u in "${fetch_urls[@]}"; do
+      if command -v curl >/dev/null 2>&1; then
+        if [[ "$u" == *"format=TEXT"* ]]; then
+          curl -L --fail --retry 2 "$u" | base64 -d > "$fetched" 2>/dev/null || true
+        else
+          curl -L --fail --retry 2 "$u" -o "$fetched" || true
+        fi
+      elif command -v wget >/dev/null 2>&1; then
+        if [[ "$u" == *"format=TEXT"* ]]; then
+          wget -qO- "$u" | base64 -d > "$fetched" 2>/dev/null || true
+        else
+          wget -O "$fetched" "$u" || true
+        fi
+      fi
+      if [[ -s "$fetched" ]]; then
+        chmod +x "$fetched" || true
+        mkbootimg_cmd="$python_cmd $fetched"
+        break
+      fi
+    done
+  fi
+}
+
+extract_bootimg_from_zip() {
+  local zip_path="$1"
+  local out_path="$2"
+  local tmp_path="$3"
+  [[ -f "$zip_path" ]] || return 1
+  command -v unzip >/dev/null 2>&1 || return 1
+  rm -f "$tmp_path"
+  unzip -p "$zip_path" "*boot.img" > "$tmp_path" 2>/dev/null || return 1
+  if is_android_boot_image "$tmp_path"; then
+    mv -f "$tmp_path" "$out_path"
+    return 0
+  fi
+  rm -f "$tmp_path"
+  return 1
+}
+
+write_bootimg_ok() {
+  local reason="$1"
+  local source_name="$2"
+  local source_ref="$3"
+  local out_boot="$4"
+  local size="$5"
+  {
+    echo "status=ok"
+    echo "reason=$reason"
+    echo "missing="
+    echo "kernel_path=$kernel_path"
+    echo "ramdisk_path=$ramdisk_path"
+    echo "dtb_path=$dtb_path"
+    echo "mkbootimg_cmd=$mkbootimg_cmd"
+    echo "header_version=$header_version"
+    echo "base=$base"
+    echo "pagesize=$pagesize"
+    echo "output=$out_boot"
+    echo "output_size_bytes=$size"
+    echo "required_bytes=$required_bytes"
+    echo "source=$source_name"
+    echo "source_ref=$source_ref"
+  } > "$OUT"
+}
+
+prepare_prebuilt_bootimg() {
+  local in_path="$1"
+  local source_name="$2"
+  local source_ref="$3"
+  local out_boot="$ART/boot.img"
+  local tmp_boot="$ART/prebuilt-boot.img"
+  local size final_reason
+
+  rm -f "$out_boot" "$tmp_boot"
+  if is_android_boot_image "$in_path"; then
+    cp -f "$in_path" "$out_boot"
+  elif is_zip_file "$in_path"; then
+    extract_bootimg_from_zip "$in_path" "$out_boot" "$tmp_boot" || true
+  fi
+
+  if [[ -f "$out_boot" ]] && is_android_boot_image "$out_boot"; then
+    size="$(stat -c%s "$out_boot" 2>/dev/null || wc -c < "$out_boot")"
+    final_reason="${source_name}-bootimg-ready"
+    if [[ "$required_bytes" =~ ^[0-9]+$ ]] && [[ "$required_bytes" -gt 0 ]]; then
+      if [[ "$size" -lt "$required_bytes" ]]; then
+        truncate -s "$required_bytes" "$out_boot"
+        size="$required_bytes"
+        final_reason="${source_name}-bootimg-padded-to-rom-size"
+      elif [[ "$size" -gt "$required_bytes" ]]; then
+        final_reason="${source_name}-bootimg-oversize"
+      fi
+    fi
+    write_bootimg_ok "$final_reason" "$source_name" "$source_ref" "$out_boot" "$size"
+    echo "bootimg prepared: $out_boot ($size bytes)"
+    exit 0
+  fi
 }
 
 # kernel
@@ -84,62 +225,16 @@ if [[ -z "$dtb_path" && -s "$ART/umi_primary_dtb_paths.txt" ]]; then
   [[ -f "$cand" ]] && dtb_path="$cand"
 fi
 
-# mkbootimg tool detection (with best-effort remote fallback)
-if command -v mkbootimg >/dev/null 2>&1; then
-  mkbootimg_cmd="mkbootimg"
-elif [[ -x "$HOME/.local/bin/mkbootimg" ]]; then
-  mkbootimg_cmd="$HOME/.local/bin/mkbootimg"
-elif [[ -x "$HOME/.local/bin/mkbootimg.py" ]]; then
-  mkbootimg_cmd="$HOME/.local/bin/mkbootimg.py"
-elif [[ -f source/Tools/mkbootimg/mkbootimg.py ]]; then
-  mkbootimg_cmd="python3 source/Tools/mkbootimg/mkbootimg.py"
-elif [[ -f target/Tools/mkbootimg/mkbootimg.py ]]; then
-  mkbootimg_cmd="python3 target/Tools/mkbootimg/mkbootimg.py"
-elif command -v python3 >/dev/null 2>&1; then
-  py_mkbootimg="$(python3 - <<'PY'
-import importlib.util
-print('ok' if importlib.util.find_spec('mkbootimg') else 'no')
-PY
-)"
-  if [[ "$py_mkbootimg" == "ok" ]]; then
-    mkbootimg_cmd="python3 -m mkbootimg"
-  fi
-fi
-
-# Last resort: fetch a standalone mkbootimg.py into artifacts/ (network best-effort)
-if [[ -z "$mkbootimg_cmd" && -x "$(command -v python3 || true)" ]]; then
-  fetched="$ART/mkbootimg.py"
-  fetch_urls=(
-    "https://raw.githubusercontent.com/aosp-mirror/platform_system_tools_mkbootimg/master/mkbootimg.py"
-    "https://android.googlesource.com/platform/system/Tools/mkbootimg/+/refs/heads/master/mkbootimg.py?format=TEXT"
-  )
-  for u in "${fetch_urls[@]}"; do
-    if command -v curl >/dev/null 2>&1; then
-      if [[ "$u" == *"format=TEXT"* ]]; then
-        curl -L --fail --retry 2 "$u" | base64 -d > "$fetched" 2>/dev/null || true
-      else
-        curl -L --fail --retry 2 "$u" -o "$fetched" || true
-      fi
-    elif command -v wget >/dev/null 2>&1; then
-      if [[ "$u" == *"format=TEXT"* ]]; then
-        wget -qO- "$u" | base64 -d > "$fetched" 2>/dev/null || true
-      else
-        wget -O "$fetched" "$u" || true
-      fi
-    fi
-    if [[ -s "$fetched" ]]; then
-      chmod +x "$fetched" || true
-      mkbootimg_cmd="python3 '$fetched'"
-      break
-    fi
-  done
-fi
-
 header_version="${BOOTIMG_HEADER_VERSION:-3}"
 base="${BOOTIMG_BASE:-0x00000000}"
 pagesize="${BOOTIMG_PAGESIZE:-4096}"
 cmdline="${BOOTIMG_CMDLINE:-}"
 required_bytes="${BOOTIMG_REQUIRED_BYTES:-134217728}"
+
+# preferred ROM-aligned fallback: use local official ROM package when available
+if [[ -f "$official_rom_zip" ]]; then
+  prepare_prebuilt_bootimg "$official_rom_zip" "official_rom_zip" "$official_rom_zip"
+fi
 
 # fallback: use a prebuilt boot.img directly when mkbootimg inputs are unavailable
 if [[ -n "$prebuilt_url" ]]; then
@@ -148,49 +243,9 @@ if [[ -n "$prebuilt_url" ]]; then
   tmp_boot="$ART/prebuilt-boot.img"
   rm -f "$out_boot" "$tmp_boot"
   if fetch_file "$prebuilt_url" "$prebuilt_dl"; then
-    # direct boot.img: require real Android boot header, do not accept generic "data"
-    if is_android_boot_image "$prebuilt_dl"; then
-      mv -f "$prebuilt_dl" "$out_boot"
-    # archive fallback: extract boot.img from zip and validate the extracted payload
-    elif is_zip_file "$prebuilt_dl" && command -v unzip >/dev/null 2>&1; then
-      unzip -p "$prebuilt_dl" "*boot.img" > "$tmp_boot" 2>/dev/null || true
-      if is_android_boot_image "$tmp_boot"; then
-        mv -f "$tmp_boot" "$out_boot"
-      fi
-    fi
+    prepare_prebuilt_bootimg "$prebuilt_dl" "prebuilt_url" "$prebuilt_url"
   fi
-  if [[ -f "$out_boot" ]] && is_android_boot_image "$out_boot"; then
-    size="$(stat -c%s "$out_boot" 2>/dev/null || wc -c < "$out_boot")"
-    final_reason="prebuilt-bootimg-downloaded"
-    if [[ "$required_bytes" =~ ^[0-9]+$ ]] && [[ "$required_bytes" -gt 0 ]]; then
-      if [[ "$size" -lt "$required_bytes" ]]; then
-        truncate -s "$required_bytes" "$out_boot"
-        size="$required_bytes"
-        final_reason="prebuilt-bootimg-downloaded-and-padded"
-      elif [[ "$size" -gt "$required_bytes" ]]; then
-        final_reason="prebuilt-bootimg-oversize"
-      fi
-    fi
-    {
-      echo "status=ok"
-      echo "reason=$final_reason"
-      echo "missing="
-      echo "kernel_path=$kernel_path"
-      echo "ramdisk_path=$ramdisk_path"
-      echo "dtb_path=$dtb_path"
-      echo "mkbootimg_cmd=$mkbootimg_cmd"
-      echo "header_version=$header_version"
-      echo "base=$base"
-      echo "pagesize=$pagesize"
-      echo "output=$out_boot"
-      echo "output_size_bytes=$size"
-      echo "required_bytes=$required_bytes"
-      echo "source=prebuilt_url"
-      echo "prebuilt_url=$prebuilt_url"
-    } > "$OUT"
-    echo "bootimg prepared: $out_boot ($size bytes)"
-    exit 0
-  elif [[ -f "$prebuilt_dl" ]]; then
+  if [[ -f "$prebuilt_dl" ]]; then
     {
       echo "status=blocked"
       echo "reason=prebuilt-not-android-bootimg"
@@ -209,6 +264,8 @@ if [[ -n "$prebuilt_url" ]]; then
     exit 0
   fi
 fi
+
+resolve_mkbootimg
 
 missing=()
 [[ -n "$mkbootimg_cmd" ]] || missing+=("mkbootimg")
@@ -234,12 +291,29 @@ fi
 
 # build boot.img into artifacts
 out_boot="$ART/boot.img"
-set +e
+mkbootimg_args=(
+  --kernel "$kernel_path"
+  --ramdisk "$ramdisk_path"
+  --header_version "$header_version"
+  --base "$base"
+  --pagesize "$pagesize"
+  --cmdline "$cmdline"
+  --output "$out_boot"
+)
 if [[ -n "$dtb_path" && -f "$dtb_path" ]]; then
-  eval "$mkbootimg_cmd --kernel '$kernel_path' --ramdisk '$ramdisk_path' --dtb '$dtb_path' --header_version '$header_version' --base '$base' --pagesize '$pagesize' --cmdline '$cmdline' --output '$out_boot'"
+  mkbootimg_args+=(--dtb "$dtb_path")
+fi
+
+set +e
+if [[ "$mkbootimg_cmd" == *" -m mkbootimg" ]]; then
+  "$python_cmd" -m mkbootimg "${mkbootimg_args[@]}"
+  rc=$?
+elif [[ -n "$python_cmd" && "$mkbootimg_cmd" == "$python_cmd "* ]]; then
+  mkbootimg_py="${mkbootimg_cmd#$python_cmd }"
+  "$python_cmd" "$mkbootimg_py" "${mkbootimg_args[@]}"
   rc=$?
 else
-  eval "$mkbootimg_cmd --kernel '$kernel_path' --ramdisk '$ramdisk_path' --header_version '$header_version' --base '$base' --pagesize '$pagesize' --cmdline '$cmdline' --output '$out_boot'"
+  "$mkbootimg_cmd" "${mkbootimg_args[@]}"
   rc=$?
 fi
 set -e
@@ -285,6 +359,8 @@ fi
   echo "output=$out_boot"
   echo "output_size_bytes=$size"
   echo "required_bytes=$required_bytes"
+  echo "source=mkbootimg"
+  echo "source_ref=$mkbootimg_cmd"
 } > "$OUT"
 
 echo "bootimg built: $out_boot ($size bytes)"

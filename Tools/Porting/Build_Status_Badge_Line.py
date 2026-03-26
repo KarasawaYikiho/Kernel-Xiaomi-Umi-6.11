@@ -23,17 +23,29 @@ def main() -> int:
     driver_pending = r.get("driver_integration_pending", "")
     runtime_result = r.get("runtime_validation_overall", "UNKNOWN")
     failed_step = r.get("runtime_validation_failed_step", "")
+    release_status = r.get("release_status", "unknown")
+    rom_bootimg = f"{r.get('bootimg_rom_size_match', 'unknown')}/{r.get('bootimg_rom_sha256_match', 'unknown')}"
 
     expected_runtime_ready = derive_runtime_ready(next_action)
-    runtime_marker = "ok" if runtime_ready == expected_runtime_ready else f"mismatch(expected:{expected_runtime_ready})"
-    runtime_gate = "ready" if runtime_ready == "yes" and driver_integration_allows_runtime(driver_integration, driver_pending) else "blocked"
+    runtime_marker = (
+        "ok"
+        if runtime_ready == expected_runtime_ready
+        else f"mismatch(expected:{expected_runtime_ready})"
+    )
+    runtime_gate = (
+        "ready"
+        if runtime_ready == "yes"
+        and driver_integration_allows_runtime(driver_integration, driver_pending)
+        else "blocked"
+    )
     runtime_result_suffix = f"/{failed_step}" if failed_step else ""
 
     line = (
         f"build={build_rc} | flash={flash} | anykernel={anyk}/{anyk_val} "
         f"| driver_integration={driver_integration} | runtime_gate={runtime_gate} "
         f"| runtime_result={runtime_result}{runtime_result_suffix} "
-        f"| runtime_ready={runtime_ready}({runtime_marker}) | hit_ratio={ratio} | next={next_action}"
+        f"| runtime_ready={runtime_ready}({runtime_marker}) | release={release_status} "
+        f"| rom_bootimg={rom_bootimg} | hit_ratio={ratio} | next={next_action}"
     )
     OUT.write_text(line + "\n", encoding="utf-8")
     print(f"wrote {OUT}")

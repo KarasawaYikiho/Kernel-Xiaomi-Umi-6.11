@@ -3,11 +3,13 @@ from pathlib import Path
 import json
 
 from Kv_Utils import parse_kv
-from Phase2_Decision import DEFAULT_BOOTIMG_REQUIRED_BYTES_STR, driver_integration_allows_runtime
+from Phase2_Decision import (
+    DEFAULT_BOOTIMG_REQUIRED_BYTES_STR,
+    driver_integration_allows_runtime,
+)
 
 ART = Path("artifacts")
 OUT = ART / "phase2-metrics.json"
-
 
 
 def main() -> int:
@@ -18,7 +20,16 @@ def main() -> int:
     consistency = parse_kv(ART / "decision-consistency.txt")
     runtime_result = parse_kv(ART / "runtime-validation-result.txt")
 
-    runtime_gate_status = "ready" if report.get("runtime_ready", "no") == "yes" and consistency.get("status", "unknown") in ("ok", "unknown") and driver_integration_allows_runtime(report.get("driver_integration_status", "pending"), report.get("driver_integration_pending", "")) else "blocked"
+    runtime_gate_status = (
+        "ready"
+        if report.get("runtime_ready", "no") == "yes"
+        and consistency.get("status", "unknown") in ("ok", "unknown")
+        and driver_integration_allows_runtime(
+            report.get("driver_integration_status", "pending"),
+            report.get("driver_integration_pending", ""),
+        )
+        else "blocked"
+    )
 
     obj = {
         "run": {
@@ -37,14 +48,32 @@ def main() -> int:
         },
         "packaging": {
             "flash_status": report.get("flash_status", "unknown"),
+            "release_status": report.get("release_status", "unknown"),
+            "release_reason": report.get("release_reason", "n/a"),
             "anykernel_ok": report.get("anykernel_ok", "no"),
-            "anykernel_validate_status": report.get("anykernel_validate_status", "unknown"),
+            "anykernel_validate_status": report.get(
+                "anykernel_validate_status", "unknown"
+            ),
             "anykernel_validate_reason": report.get("anykernel_validate_reason", "n/a"),
             "bootimg_status": report.get("bootimg_status", "missing"),
             "bootimg_reason": report.get("bootimg_reason", "n/a"),
             "bootimg_size_bytes": report.get("bootimg_size_bytes", "0"),
-            "bootimg_required_bytes": report.get("bootimg_required_bytes", DEFAULT_BOOTIMG_REQUIRED_BYTES_STR),
-            "bootimg_required_bytes_parse": report.get("bootimg_required_bytes_parse", "unknown"),
+            "bootimg_required_bytes": report.get(
+                "bootimg_required_bytes", DEFAULT_BOOTIMG_REQUIRED_BYTES_STR
+            ),
+            "bootimg_required_bytes_parse": report.get(
+                "bootimg_required_bytes_parse", "unknown"
+            ),
+            "bootimg_rom_expected_size_bytes": report.get(
+                "bootimg_rom_expected_size_bytes", ""
+            ),
+            "bootimg_rom_expected_sha256": report.get(
+                "bootimg_rom_expected_sha256", ""
+            ),
+            "bootimg_rom_size_match": report.get("bootimg_rom_size_match", "unknown"),
+            "bootimg_rom_sha256_match": report.get(
+                "bootimg_rom_sha256_match", "unknown"
+            ),
             "bootimg_build_status": report.get("bootimg_build_status", "unknown"),
             "bootimg_build_reason": report.get("bootimg_build_reason", "n/a"),
             "bootimg_build_missing": report.get("bootimg_build_missing", ""),
@@ -53,7 +82,9 @@ def main() -> int:
             "next_action": report.get("next_action", "collect-more-data"),
             "runtime_ready": report.get("runtime_ready", "no"),
             "runtime_gate_status": runtime_gate_status,
-            "driver_integration_status": report.get("driver_integration_status", "pending"),
+            "driver_integration_status": report.get(
+                "driver_integration_status", "pending"
+            ),
             "driver_integration_reason": report.get("driver_integration_reason", "n/a"),
             "schema_status": valid.get("status", "unknown"),
         },
@@ -74,7 +105,9 @@ def main() -> int:
         },
     }
 
-    OUT.write_text(json.dumps(obj, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    OUT.write_text(
+        json.dumps(obj, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+    )
     print(f"wrote {OUT}")
     return 0
 
