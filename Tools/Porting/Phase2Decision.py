@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-from Kv_Utils import split_csv
+from KvUtils import split_csv
 
 ALLOWED_NEXT_ACTION: set[str] = {
     "collect-more-data",

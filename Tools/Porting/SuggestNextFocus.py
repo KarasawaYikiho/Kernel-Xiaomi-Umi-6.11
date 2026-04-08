@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-from Kv_Utils import parse_kv
-from Phase2_Decision import derive_next_focus, parse_float
+from KvUtils import parse_kv
+from Phase2Decision import derive_next_focus, parse_float
 
 ART = Path("artifacts")
 OUT = ART / "next-focus.txt"

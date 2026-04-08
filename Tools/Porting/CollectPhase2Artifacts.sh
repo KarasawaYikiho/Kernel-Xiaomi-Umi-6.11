@@ -28,7 +28,7 @@ if [ -d out/arch/arm64/boot/dts ]; then
 fi
 
 # build manifest from migrated dts list (preferred)
-"$python_cmd" Tools/Porting/Build_Dtb_Manifest.py || true
+"$python_cmd" Tools/Porting/BuildDtbManifest.py || true
 
 # pick paths by manifest first
 if [ -s artifacts/target_dtb_manifest.txt ]; then
@@ -38,8 +38,8 @@ if [ -s artifacts/target_dtb_manifest.txt ]; then
   done < artifacts/target_dtb_manifest.txt
 fi
 
-"$python_cmd" Tools/Porting/Dtb_Postcheck.py || true
-"$python_cmd" Tools/Porting/Analyze_Dtb_Miss.py || true
+"$python_cmd" Tools/Porting/DtbPostcheck.py || true
+"$python_cmd" Tools/Porting/AnalyzeDtbMiss.py || true
 
 # fallback 1: strict umi/xiaomi/sm8250 path matching
 if [ ! -s artifacts/umi_primary_dtb_paths.txt ]; then
@@ -90,4 +90,4 @@ fi
 if command -v zip >/dev/null 2>&1; then
   (cd artifacts/umi_bundle && zip -r ../phase2-umi-focused-package.zip .) || true
 fi
-"$python_cmd" Tools/Porting/Evaluate_Artifact.py || true
+"$python_cmd" Tools/Porting/EvaluateArtifact.py || true
