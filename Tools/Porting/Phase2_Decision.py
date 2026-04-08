@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+from Kv_Utils import split_csv
+
 ALLOWED_NEXT_ACTION: set[str] = {
     "collect-more-data",
     "fix-defconfig-errors",
@@ -33,6 +35,7 @@ RUNTIME_SAFE_DRIVER_PENDING: set[str] = {
     "rom_vbmeta_consistency",
     "rom_dynamic_partition_baseline",
     "partition_baseline_not_confirmed",
+    "target_tree_missing_for_driver_validation",
 }
 
 
@@ -45,12 +48,6 @@ def parse_float(value: str, default: float = 0.0) -> float:
         return float(value)
     except (TypeError, ValueError):
         return default
-
-
-def split_csv(value: str) -> list[str]:
-    if not value:
-        return []
-    return [x.strip() for x in value.split(",") if x.strip()]
 
 
 def driver_integration_runtime_blockers(
@@ -106,6 +103,15 @@ def derive_next_action(
     ):
         next_action = "ready-for-action-test"
 
+    # The primary runtime path can be a ROM-aligned boot image patched by Magisk,
+    # even when AnyKernel packaging or build-context artifacts are absent.
+    if (
+        next_action == "collect-more-data"
+        and bootimg_status == "ok"
+        and runtime_validation_overall == "UNKNOWN"
+    ):
+        next_action = "ready-for-action-test"
+
     if flash_status == "candidate" and (
         anykernel_ok != "yes" or anykernel_validate_status not in ("ok", "unknown")
     ):
@@ -122,12 +128,18 @@ def derive_next_action(
     elif runtime_validation_overall == "PASS":
         if bootimg_status in ("missing", "size_mismatch", "invalid_format"):
             next_action = "prepare-release-bootimg"
-        elif driver_integration_status != "complete" and split_csv(driver_integration_pending):
+        elif driver_integration_status != "complete" and split_csv(
+            driver_integration_pending
+        ):
             next_action = "integrate-drivers-phase3"
         else:
             next_action = "collect-more-data"
 
-    if next_action == "collect-more-data" and bootimg_status in ("missing", "size_mismatch", "invalid_format"):
+    if next_action == "collect-more-data" and bootimg_status in (
+        "missing",
+        "size_mismatch",
+        "invalid_format",
+    ):
         next_action = "prepare-release-bootimg"
 
     return next_action
@@ -140,6 +152,8 @@ def derive_runtime_ready(next_action: str) -> str:
 def derive_next_focus(
     *,
     report_next_action: str,
+    artifact_completeness: str = "unknown",
+    build_context_present: str = "unknown",
     build_rc: str,
     dtbs_rc: str,
     flash_status: str,
@@ -156,6 +170,19 @@ def derive_next_focus(
     mapped = REPORT_NEXT_TO_FOCUS.get(report_next_action)
     if mapped:
         return mapped, "report_next_action"
+
+    if (
+        artifact_completeness == "partial"
+        or build_context_present == "no"
+        or flash_status == "unknown"
+    ) and (
+        manifest_hit_ratio <= 0.0
+        and anykernel_ok != "yes"
+        and anykernel_validate_status == "missing"
+        and not is_nonzero_rc(build_rc)
+        and not is_nonzero_rc(dtbs_rc)
+    ):
+        return "collect-more-data", "missing_phase2_artifacts"
 
     if is_nonzero_rc(build_rc):
         return "fix-build-errors", "core_build_failed"

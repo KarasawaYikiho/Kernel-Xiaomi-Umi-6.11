@@ -15,6 +15,7 @@ def main() -> int:
     build_rc = r.get("build_rc", "n/a")
     flash = r.get("flash_status", "unknown")
     anyk = r.get("anykernel_ok", "no")
+    anyk_reason = r.get("anykernel_reason", "n/a")
     anyk_val = r.get("anykernel_validate_status", "unknown")
     ratio = r.get("manifest_hit_ratio", "0.000")
     next_action = r.get("next_action", "collect-more-data")
@@ -22,9 +23,19 @@ def main() -> int:
     driver_integration = r.get("driver_integration_status", "pending")
     driver_pending = r.get("driver_integration_pending", "")
     runtime_result = r.get("runtime_validation_overall", "UNKNOWN")
+    runtime_status = r.get("runtime_validation_status", "missing_input")
+    runtime_boot_method = r.get("runtime_validation_boot_method", "unknown")
     failed_step = r.get("runtime_validation_failed_step", "")
     release_status = r.get("release_status", "unknown")
     rom_bootimg = f"{r.get('bootimg_rom_size_match', 'unknown')}/{r.get('bootimg_rom_sha256_match', 'unknown')}"
+    magisk_ready = (
+        "yes"
+        if release_status == "ready"
+        and r.get("bootimg_status", "missing") == "ok"
+        and r.get("bootimg_rom_size_match", "unknown") == "yes"
+        and r.get("bootimg_rom_sha256_match", "unknown") == "yes"
+        else "no"
+    )
 
     expected_runtime_ready = derive_runtime_ready(next_action)
     runtime_marker = (
@@ -41,9 +52,10 @@ def main() -> int:
     runtime_result_suffix = f"/{failed_step}" if failed_step else ""
 
     line = (
-        f"build={build_rc} | flash={flash} | anykernel={anyk}/{anyk_val} "
+        f"build={build_rc} | flash={flash} | anykernel={anyk}/{anyk_reason}/{anyk_val} "
         f"| driver_integration={driver_integration} | runtime_gate={runtime_gate} "
         f"| runtime_result={runtime_result}{runtime_result_suffix} "
+        f"| runtime_status={runtime_status}/{runtime_boot_method} | magisk_ready={magisk_ready} "
         f"| runtime_ready={runtime_ready}({runtime_marker}) | release={release_status} "
         f"| rom_bootimg={rom_bootimg} | hit_ratio={ratio} | next={next_action}"
     )

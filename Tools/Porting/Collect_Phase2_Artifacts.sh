@@ -6,20 +6,12 @@ set -euo pipefail
 
 DEVICE="${1:-umi}"
 
-python_cmd=""
-for cand in python3 python; do
-  if command -v "$cand" >/dev/null 2>&1 && "$cand" -V >/dev/null 2>&1; then
-    python_cmd="$cand"
-    break
-  fi
-done
-
-if [[ -z "$python_cmd" ]]; then
-  echo "python interpreter not found" >&2
-  exit 1
-fi
+source "Tools/Porting/Common.sh"
+python_cmd="$(require_python_cmd)" || exit 1
 
 mkdir -p artifacts/umi_bundle
+: > artifacts/all_dtb_paths.txt
+: > artifacts/umi_primary_dtb_paths.txt
 cp -v target/Porting/phase2/summary.txt artifacts/ || true
 cp -v target/Porting/phase2/copied_dts.txt artifacts/ || true
 cp -v target/Porting/phase2/seed_dts.txt artifacts/ || true
@@ -31,13 +23,14 @@ cp -v out/arch/arm64/boot/boot.img artifacts/ || true
 cp -v out/boot.img artifacts/ || true
 
 # diagnostic lists
-find out/arch/arm64/boot/dts -type f \( -name '*.dtb' -o -name '*.dtbo' \) > artifacts/all_dtb_paths.txt || true
+if [ -d out/arch/arm64/boot/dts ]; then
+  find out/arch/arm64/boot/dts -type f \( -name '*.dtb' -o -name '*.dtbo' \) > artifacts/all_dtb_paths.txt || true
+fi
 
 # build manifest from migrated dts list (preferred)
 "$python_cmd" Tools/Porting/Build_Dtb_Manifest.py || true
 
 # pick paths by manifest first
-: > artifacts/umi_primary_dtb_paths.txt
 if [ -s artifacts/target_dtb_manifest.txt ]; then
   while IFS= read -r dtb; do
     [ -n "$dtb" ] || continue
@@ -52,6 +45,12 @@ fi
 if [ ! -s artifacts/umi_primary_dtb_paths.txt ]; then
   grep -Ei '/.*(sm8250-xiaomi|umi-sm8250|xiaomi-sm8250-common).*(\.dtb|\.dtbo)$' artifacts/all_dtb_paths.txt \
     | grep -Eiv 'rumi|lumia|sony' > artifacts/umi_primary_dtb_paths.txt || true
+fi
+
+# fallback 1.5: explicit umi aliases by basename
+if [ ! -s artifacts/umi_primary_dtb_paths.txt ]; then
+  grep -Ei '/(sm8250-xiaomi-umi|umi-sm8250|xiaomi-sm8250-common)([^/]*\.(dtb|dtbo))$' artifacts/all_dtb_paths.txt \
+    | grep -Eiv 'rumi|lumia|sony|hdk|mtp' > artifacts/umi_primary_dtb_paths.txt || true
 fi
 
 # fallback 2: keep it strict to avoid false positives from unrelated boards
@@ -88,5 +87,7 @@ fi
   echo "flash_ready_hint=$flash_ready"
 } > artifacts/umi_bundle/pack-info.txt
 
-(cd artifacts/umi_bundle && zip -r ../phase2-umi-focused-package.zip .)
+if command -v zip >/dev/null 2>&1; then
+  (cd artifacts/umi_bundle && zip -r ../phase2-umi-focused-package.zip .) || true
+fi
 "$python_cmd" Tools/Porting/Evaluate_Artifact.py || true

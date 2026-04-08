@@ -30,6 +30,12 @@ def main() -> int:
         )
         else "blocked"
     )
+    magisk_patch_ready = (
+        report.get("release_status", "unknown") == "ready"
+        and report.get("bootimg_status", "missing") == "ok"
+        and report.get("bootimg_rom_size_match", "unknown") == "yes"
+        and report.get("bootimg_rom_sha256_match", "unknown") == "yes"
+    )
 
     obj = {
         "run": {
@@ -45,12 +51,18 @@ def main() -> int:
         "dtb": {
             "hit_ratio": report.get("manifest_hit_ratio", "0.000"),
             "miss_bucket_total": report.get("miss_bucket_total", "0"),
+            "manifest_wanted": report.get("manifest_wanted", "0"),
+            "manifest_hit": report.get("manifest_hit", "0"),
+            "manifest_miss": report.get("manifest_miss", "0"),
         },
         "packaging": {
             "flash_status": report.get("flash_status", "unknown"),
             "release_status": report.get("release_status", "unknown"),
             "release_reason": report.get("release_reason", "n/a"),
             "anykernel_ok": report.get("anykernel_ok", "no"),
+            "anykernel_reason": report.get("anykernel_reason", "n/a"),
+            "anykernel_imagegz_path": report.get("anykernel_imagegz_path", ""),
+            "anykernel_template_source": report.get("anykernel_template_source", ""),
             "anykernel_validate_status": report.get(
                 "anykernel_validate_status", "unknown"
             ),
@@ -82,6 +94,7 @@ def main() -> int:
             "next_action": report.get("next_action", "collect-more-data"),
             "runtime_ready": report.get("runtime_ready", "no"),
             "runtime_gate_status": runtime_gate_status,
+            "magisk_patch_ready": "yes" if magisk_patch_ready else "no",
             "driver_integration_status": report.get(
                 "driver_integration_status", "pending"
             ),
@@ -97,6 +110,8 @@ def main() -> int:
         "runtime_validation": {
             "status": runtime_result.get("status", "missing_input"),
             "overall": runtime_result.get("overall", "UNKNOWN"),
+            "boot_method": runtime_result.get("boot_method", "unknown"),
+            "patched_boot_image": runtime_result.get("patched_boot_image", ""),
             "failed_step": runtime_result.get("failed_step", ""),
             "pass_count": runtime_result.get("pass_count", "0"),
             "fail_count": runtime_result.get("fail_count", "0"),

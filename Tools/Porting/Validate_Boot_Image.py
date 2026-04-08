@@ -11,7 +11,7 @@ ZIP_MAGICS = (b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08")
 
 ART = Path("artifacts")
 OUT = ART / "bootimg-info.txt"
-ROM_ANALYSIS = Path("Porting/OfficialRom-Umi-Os1.0.5.0-Analysis.md")
+ROM_ANALYSIS = Path("Porting/OfficialRomAnalysis.md")
 DEFAULT_REQUIRED_BYTES = 134217728  # 128 MiB
 
 

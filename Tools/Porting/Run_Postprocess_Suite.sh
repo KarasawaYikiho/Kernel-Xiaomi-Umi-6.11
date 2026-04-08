@@ -4,17 +4,28 @@ set -euo pipefail
 # Run post-processing suite for phase2 artifacts.
 # Usage: Run_Postprocess_Suite.sh
 
-python_cmd=""
-for cand in python3 python; do
-  if command -v "$cand" >/dev/null 2>&1 && "$cand" -V >/dev/null 2>&1; then
-    python_cmd="$cand"
-    break
-  fi
-done
+source "Tools/Porting/Common.sh"
+python_cmd="$(require_python_cmd)" || exit 1
 
-if [[ -z "$python_cmd" ]]; then
-  echo "python interpreter not found" >&2
-  exit 1
+if [[ ! -f artifacts/run-meta.txt ]]; then
+  git_sha=""
+  git_ref=""
+  if command -v git >/dev/null 2>&1; then
+    git_sha="$(git rev-parse --short=12 HEAD 2>/dev/null || true)"
+    git_ref="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || true)"
+  fi
+  {
+    echo "workflow=local-postprocess"
+    echo "run_id=local"
+    echo "run_number=local"
+    echo "sha=${git_sha}"
+    echo "ref=${git_ref}"
+    echo "device=umi"
+    echo "source_repo=local"
+    echo "source_branch="
+    echo "target_repo=local"
+    echo "target_branch="
+  } > artifacts/run-meta.txt
 fi
 
 steps=(
@@ -27,6 +38,7 @@ steps=(
   "Validate_Anykernel_Candidate.py"
   "Validate_Boot_Image.py"
   "Evaluate_Artifact.py"
+  "Check_Artifact_Completeness.py"
   "Build_Driver_Integration_Status.py"
   "Build_Phase2_Report.py"
   "Suggest_Next_Focus.py"
@@ -40,7 +52,6 @@ steps=(
   "Build_Artifact_Checksums.py"
   "Build_Action_Validation_Checklist.py"
   "Build_Runtime_Validation_Summary.py"
-  "Check_Artifact_Completeness.py"
 )
 
 status_file="artifacts/postprocess-status.txt"

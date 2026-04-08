@@ -8,7 +8,6 @@ ART = Path("artifacts")
 OUT = ART / "next-focus.txt"
 
 
-
 def main() -> int:
     ART.mkdir(parents=True, exist_ok=True)
 
@@ -25,6 +24,8 @@ def main() -> int:
 
     focus, reason = derive_next_focus(
         report_next_action=report_next,
+        artifact_completeness=report.get("artifact_completeness", "unknown"),
+        build_context_present=report.get("build_context_present", "unknown"),
         build_rc=build_rc,
         dtbs_rc=dtbs_rc,
         flash_status=flash,
@@ -36,18 +37,21 @@ def main() -> int:
     )
 
     OUT.write_text(
-        "\n".join([
-            f"focus={focus}",
-            f"reason={reason}",
-            f"flash_status={flash}",
-            f"anykernel_ok={anyk}",
-            f"anykernel_validate_status={anyk_val}",
-            f"manifest_hit_ratio={hit_ratio:.3f}",
-            f"build_rc={build_rc}",
-            f"dtbs_rc={dtbs_rc}",
-            f"runtime_validation_overall={runtime_overall}",
-            f"runtime_validation_failed_step={runtime_failed_step}",
-        ]) + "\n",
+        "\n".join(
+            [
+                f"focus={focus}",
+                f"reason={reason}",
+                f"flash_status={flash}",
+                f"anykernel_ok={anyk}",
+                f"anykernel_validate_status={anyk_val}",
+                f"manifest_hit_ratio={hit_ratio:.3f}",
+                f"build_rc={build_rc}",
+                f"dtbs_rc={dtbs_rc}",
+                f"runtime_validation_overall={runtime_overall}",
+                f"runtime_validation_failed_step={runtime_failed_step}",
+            ]
+        )
+        + "\n",
         encoding="utf-8",
     )
     print(f"wrote {OUT}: {focus}")

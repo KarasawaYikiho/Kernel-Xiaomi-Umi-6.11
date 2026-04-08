@@ -19,6 +19,8 @@ mkbootimg_cmd=""
 official_rom_zip="${OFFICIAL_ROM_ZIP:-$DEFAULT_OFFICIAL_ROM_ZIP}"
 python_cmd=""
 
+source "Tools/Porting/Common.sh"
+
 fetch_file() {
   local url="$1"; local out="$2"
   if command -v curl >/dev/null 2>&1; then
@@ -46,14 +48,8 @@ is_zip_file() {
 }
 
 detect_python() {
-  local cand
-  for cand in python3 python; do
-    if command -v "$cand" >/dev/null 2>&1 && "$cand" -V >/dev/null 2>&1; then
-      python_cmd="$cand"
-      return 0
-    fi
-  done
-  return 1
+  python_cmd="$(resolve_python_cmd || true)"
+  [[ -n "$python_cmd" ]]
 }
 
 resolve_mkbootimg() {
@@ -123,6 +119,45 @@ extract_bootimg_from_zip() {
   fi
   rm -f "$tmp_path"
   return 1
+}
+
+extract_named_from_zip() {
+  local zip_path="$1"
+  local entry_name="$2"
+  local out_path="$3"
+  local tmp_path="$4"
+  [[ -f "$zip_path" ]] || return 1
+  rm -f "$tmp_path"
+  if command -v unzip >/dev/null 2>&1; then
+    unzip -p "$zip_path" "$entry_name" > "$tmp_path" 2>/dev/null || return 1
+  elif [[ -n "$python_cmd" ]]; then
+    "$python_cmd" - "$zip_path" "$entry_name" "$tmp_path" <<'PY'
+import sys
+import zipfile
+
+zip_path, entry_name, out_path = sys.argv[1:4]
+with zipfile.ZipFile(zip_path) as zf:
+    data = zf.read(entry_name)
+with open(out_path, 'wb') as f:
+    f.write(data)
+PY
+  else
+    return 1
+  fi
+  if [[ -s "$tmp_path" ]]; then
+    mv -f "$tmp_path" "$out_path"
+    return 0
+  fi
+  rm -f "$tmp_path"
+  return 1
+}
+
+extract_rom_support_images() {
+  local zip_path="$1"
+  local tmp_dtbo="$ART/rom-dtbo.tmp"
+  local tmp_vbmeta="$ART/rom-vbmeta.tmp"
+  extract_named_from_zip "$zip_path" "firmware-update/dtbo.img" "$ART/dtbo.img" "$tmp_dtbo" || true
+  extract_named_from_zip "$zip_path" "firmware-update/vbmeta.img" "$ART/vbmeta.img" "$tmp_vbmeta" || true
 }
 
 write_bootimg_ok() {
@@ -233,6 +268,7 @@ required_bytes="${BOOTIMG_REQUIRED_BYTES:-134217728}"
 
 # preferred ROM-aligned fallback: use local official ROM package when available
 if [[ -f "$official_rom_zip" ]]; then
+  extract_rom_support_images "$official_rom_zip"
   prepare_prebuilt_bootimg "$official_rom_zip" "official_rom_zip" "$official_rom_zip"
 fi
 
