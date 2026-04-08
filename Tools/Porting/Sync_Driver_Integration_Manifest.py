@@ -10,8 +10,8 @@ ART = Path("artifacts")
 MANIFEST = ART / "driver-integration-manifest.txt"
 OUT = ART / "driver-integration-manifest-sync.txt"
 
-REFERENCE_REPORT = Path("Porting/Reference-Drivers-Analysis.md")
-ROM_REPORT = Path("Porting/OfficialRom-Umi-Os1.0.5.0-Analysis.md")
+REFERENCE_REPORT = Path("Porting/ReferenceDriversAnalysis.md")
+ROM_REPORT = Path("Porting/OfficialRomAnalysis.md")
 EVIDENCE = ART / "driver-integration-evidence.txt"
 
 BASE_REQUIRED = [

@@ -19,8 +19,8 @@ def _has_text(path: Path, needle: str) -> bool:
 def main() -> int:
     ART.mkdir(parents=True, exist_ok=True)
 
-    reference_report = Path("Porting/Reference-Drivers-Analysis.md")
-    rom_report = Path("Porting/OfficialRom-Umi-Os1.0.5.0-Analysis.md")
+    reference_report = Path("Porting/ReferenceDriversAnalysis.md")
+    rom_report = Path("Porting/OfficialRomAnalysis.md")
     manifest = ART / "driver-integration-manifest.txt"
     manifest_validate = parse_kv(ART / "driver-integration-manifest-validate.txt")
     evidence = parse_kv(ART / "driver-integration-evidence.txt")

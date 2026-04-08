@@ -37,7 +37,7 @@ Rules:
 ## Official ROM Baseline (Analysis Only)
 
 - Baseline package: `D:\GIT\MIUI_UMI_OS1.0.5.0.TJBCNXM_d01651ed86_13.0.zip`
-- Analysis file: `Porting/OfficialRom-Umi-Os1.0.5.0-Analysis.md`
+- Analysis file: `Porting/OfficialRomAnalysis.md`
 - Scope: metadata/hash/partition-op evidence only
 
 ## Main Workflows

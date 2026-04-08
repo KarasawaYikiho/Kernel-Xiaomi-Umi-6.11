@@ -79,8 +79,8 @@ def main() -> int:
         md.extend(
             [
                 "- `driver-integration-status.txt`",
-                "- `Porting/Reference-Drivers-Analysis.md`",
-                "- `Porting/OfficialRom-Umi-Os1.0.5.0-Analysis.md`",
+                "- `Porting/ReferenceDriversAnalysis.md`",
+                "- `Porting/OfficialRomAnalysis.md`",
             ]
         )
 

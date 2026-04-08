@@ -36,7 +36,7 @@ Kernel-Xiaomi-Umi 是一个面向 Xiaomi 10（`umi`）内核迁移的**编排仓
 ## 官方 ROM 基线（仅分析）
 
 - 基线包：`D:\GIT\MIUI_UMI_OS1.0.5.0.TJBCNXM_d01651ed86_13.0.zip`
-- 分析文档：`Porting/OfficialRom-Umi-Os1.0.5.0-Analysis.md`
+- 分析文档：`Porting/OfficialRomAnalysis.md`
 - 分析范围：metadata/hash/partition-op 证据，不含 blob 导入
 
 ## 主要工作流
