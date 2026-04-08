@@ -13,7 +13,7 @@ This repository is a **porting orchestrator** (workflow + scripts + diagnostics)
 1. Read `README.md`
 2. Read `Porting/README.md`
 3. Read `Tools/Porting/README.md`
-4. Check latest `PORTING_PLAN.md` and `Porting/CHANGELOG.md`
+4. Check latest `PortingPlan.md` and `Porting/CHANGELOG.md`
 
 ## Branch Strategy
 

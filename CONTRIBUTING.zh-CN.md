@@ -13,7 +13,7 @@
 1. `README.zh-CN.md`
 2. `Porting/README.md`
 3. `Tools/Porting/README.md`
-4. 最新 `PORTING_PLAN.md` 与 `Porting/CHANGELOG.md`
+4. 最新 `PortingPlan.md` 与 `Porting/CHANGELOG.md`
 
 ## 分支策略
 

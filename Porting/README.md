@@ -4,7 +4,7 @@ This directory stores planning/baseline/analysis records for UMI porting.
 
 ## Core Files
 
-- `../PORTING_PLAN.md` — top-level roadmap and phase checklist
+- `../PortingPlan.md` — top-level roadmap and phase checklist
 - `BaselineLock.json` — pinned source/target metadata
 - `BRANCHING.md` — branch naming and merge rules
 - `ClassificationPhase1.md` — phase-1 migration classification
@@ -16,7 +16,7 @@ This directory stores planning/baseline/analysis records for UMI porting.
 
 ## Suggested Reading Order
 
-1. `../PORTING_PLAN.md`
+1. `../PortingPlan.md`
 2. `BRANCHING.md`
 3. Latest section in `CHANGELOG.md`
 4. `ClassificationPhase1.md`

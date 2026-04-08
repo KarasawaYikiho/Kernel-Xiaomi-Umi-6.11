@@ -99,7 +99,7 @@ Runtime gate 说明：
 
 ## 文档索引
 
-- `PORTING_PLAN.md`：路线图与阶段状态
+- `PortingPlan.md`：路线图与阶段状态
 - `Porting/README.md`：迁移文档索引
 - `Tools/Porting/README.md`：脚本与 CI 流程索引
 - `CONTRIBUTING.zh-CN.md`：贡献规范

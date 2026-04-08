@@ -101,7 +101,7 @@ Reference cloud build path:
 
 ## Documentation Map
 
-- `PORTING_PLAN.md` — roadmap and phase status
+- `PortingPlan.md` — roadmap and phase status
 - `Porting/README.md` — planning/baseline docs index
 - `Tools/Porting/README.md` — script index and CI pipeline details
 - `CONTRIBUTING.md` — contribution policy
