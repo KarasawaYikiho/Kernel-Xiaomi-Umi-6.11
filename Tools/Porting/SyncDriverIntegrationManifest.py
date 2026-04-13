@@ -3,15 +3,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from Kv_Utils import parse_kv
+from KvUtils import parse_kv
 from Manifest import normalize_item, parse_driver_manifest
 
 ART = Path("artifacts")
 MANIFEST = ART / "driver-integration-manifest.txt"
 OUT = ART / "driver-integration-manifest-sync.txt"
 
-REFERENCE_REPORT = Path("Porting/Reference-Drivers-Analysis.md")
-ROM_REPORT = Path("Porting/OfficialRom-Umi-Os1.0.5.0-Analysis.md")
+REFERENCE_REPORT = Path("Porting/ReferenceDriversAnalysis.md")
+ROM_REPORT = Path("Porting/OfficialRomAnalysis.md")
 EVIDENCE = ART / "driver-integration-evidence.txt"
 
 BASE_REQUIRED = [

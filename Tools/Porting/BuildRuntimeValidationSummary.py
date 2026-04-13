@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-from Kv_Utils import parse_kv, split_csv
-from Phase2_Decision import driver_integration_runtime_blockers
+from KvUtils import parse_kv, split_csv
+from Phase2Decision import driver_integration_runtime_blockers
 
 ART = Path("artifacts")
 OUT = ART / "runtime-validation-summary.md"

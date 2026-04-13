@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-from Kv_Utils import parse_kv
+from KvUtils import parse_kv
 
 ART = Path("artifacts")
 INP = ART / "runtime-validation-input.md"

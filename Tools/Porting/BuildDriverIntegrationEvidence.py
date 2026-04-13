@@ -8,8 +8,8 @@ from pathlib import Path
 
 ART = Path("artifacts")
 OUT = ART / "driver-integration-evidence.txt"
-ROM_REPORT = Path("Porting/OfficialRom-Umi-Os1.0.5.0-Analysis.md")
-REF_REPORT = Path("Porting/Reference-Drivers-Analysis.md")
+ROM_REPORT = Path("Porting/OfficialRomAnalysis.md")
+REF_REPORT = Path("Porting/ReferenceDriversAnalysis.md")
 INVENTORY = Path("Porting/Inventory.json")
 COPIED_DTS = ART / "copied_dts.txt"
 TARGET = Path("target")

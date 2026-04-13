@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-from Kv_Utils import parse_kv
-from Phase2_Decision import driver_integration_allows_runtime
+from KvUtils import parse_kv
+from Phase2Decision import driver_integration_allows_runtime
 
 ART = Path("artifacts")
 OUT = ART / "artifact-summary.md"
@@ -79,8 +79,8 @@ def main() -> int:
         md.extend(
             [
                 "- `driver-integration-status.txt`",
-                "- `Porting/Reference-Drivers-Analysis.md`",
-                "- `Porting/OfficialRom-Umi-Os1.0.5.0-Analysis.md`",
+                "- `Porting/ReferenceDriversAnalysis.md`",
+                "- `Porting/OfficialRomAnalysis.md`",
             ]
         )
 

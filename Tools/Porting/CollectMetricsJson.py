@@ -2,8 +2,8 @@
 from pathlib import Path
 import json
 
-from Kv_Utils import parse_kv
-from Phase2_Decision import (
+from KvUtils import parse_kv
+from Phase2Decision import (
     DEFAULT_BOOTIMG_REQUIRED_BYTES_STR,
     driver_integration_allows_runtime,
 )

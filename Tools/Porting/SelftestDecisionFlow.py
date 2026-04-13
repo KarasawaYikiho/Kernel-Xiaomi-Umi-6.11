@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
-from Phase2_Decision import (
+from Phase2Decision import (
     derive_next_action,
     derive_next_focus,
     derive_runtime_ready,
@@ -28,6 +28,23 @@ def main() -> int:
                 bootimg_status="ok",
                 driver_integration_status="partial",
                 driver_integration_pending="rom_boot_chain_consistency,rom_dynamic_partition_baseline",
+                runtime_validation_overall="UNKNOWN",
+            ),
+            "ready-for-action-test",
+            "yes",
+        ),
+        (
+            "runtime-ready-with-rom-aligned-bootimg-primary-path",
+            dict(
+                defconfig_rc="n/a",
+                build_rc="n/a",
+                dtbs_rc="n/a",
+                flash_status="not_ready",
+                anykernel_ok="no",
+                anykernel_validate_status="missing",
+                bootimg_status="ok",
+                driver_integration_status="complete",
+                driver_integration_pending="",
                 runtime_validation_overall="UNKNOWN",
             ),
             "ready-for-action-test",
@@ -179,6 +196,23 @@ def main() -> int:
                 "yes",
                 "ok",
                 0.75,
+                "UNKNOWN",
+                "",
+            ),
+            ("request-action-validation", "report_next_action"),
+        ),
+        (
+            "rom-aligned-bootimg-primary-path-requests-device-test",
+            (
+                "ready-for-action-test",
+                "partial",
+                "no",
+                "n/a",
+                "n/a",
+                "not_ready",
+                "no",
+                "missing",
+                0.0,
                 "UNKNOWN",
                 "",
             ),

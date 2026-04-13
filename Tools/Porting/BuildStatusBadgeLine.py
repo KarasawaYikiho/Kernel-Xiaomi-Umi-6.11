@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-from Kv_Utils import parse_kv
-from Phase2_Decision import derive_runtime_ready, driver_integration_allows_runtime
+from KvUtils import parse_kv
+from Phase2Decision import derive_runtime_ready, driver_integration_allows_runtime
 
 ART = Path("artifacts")
 OUT = ART / "status-badge-line.txt"
