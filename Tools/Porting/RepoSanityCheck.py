@@ -9,6 +9,13 @@ import py_compile
 ROOT = Path(__file__).resolve().parents[2]
 TOOLS_PORTING = ROOT / "Tools" / "Porting"
 PORTING_DOCS = ROOT / "Porting"
+GITIGNORE = ROOT / ".gitignore"
+REQUIRED_IGNORES = (
+    "artifacts/",
+    "source/",
+    "target/",
+    ".ruff_cache/",
+)
 
 
 def check_python_compile() -> list[str]:
@@ -40,7 +47,9 @@ def check_workflow_script_refs() -> list[str]:
 
     for r in sorted(set(py_refs)):
         if not (TOOLS_PORTING / r).exists():
-            errs.append(f"missing python tool referenced by workflow: Tools/Porting/{r}")
+            errs.append(
+                f"missing python tool referenced by workflow: Tools/Porting/{r}"
+            )
 
     return errs
 
@@ -65,11 +74,30 @@ def check_markdown_links() -> list[str]:
     return errs
 
 
+def check_generated_dirs_ignored() -> list[str]:
+    errs: list[str] = []
+    if not GITIGNORE.exists():
+        return ["missing .gitignore"]
+
+    entries = {
+        line.strip()
+        for line in GITIGNORE.read_text(encoding="utf-8", errors="ignore").splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    }
+
+    for entry in REQUIRED_IGNORES:
+        if entry not in entries:
+            errs.append(f"missing ignore rule: {entry}")
+
+    return errs
+
+
 def main() -> int:
     errors = []
     errors.extend(check_python_compile())
     errors.extend(check_workflow_script_refs())
     errors.extend(check_markdown_links())
+    errors.extend(check_generated_dirs_ignored())
 
     report = {
         "ok": len(errors) == 0,

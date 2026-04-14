@@ -39,6 +39,7 @@
 - 行为变化时更新文档
 - 要求 CI 证据
 - 保持 `CHANGELOG.md` 简洁
+- 不要提交生成目录 `artifacts/`、`source/`、`target/` 和本地缓存
 
 ## 安全
 

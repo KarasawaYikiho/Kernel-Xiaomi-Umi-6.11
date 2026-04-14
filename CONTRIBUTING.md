@@ -39,6 +39,7 @@ Rules:
 - Update docs when behavior changes
 - Require CI evidence
 - Keep `CHANGELOG.md` concise
+- Keep generated `artifacts/`, `source/`, `target/`, and local caches out of commits
 
 ## Security
 

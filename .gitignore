@@ -11,3 +11,4 @@ target/
 # Local editor/OS noise
 .DS_Store
 Thumbs.db
+.ruff_cache/

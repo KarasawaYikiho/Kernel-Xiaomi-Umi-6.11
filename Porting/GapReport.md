@@ -26,3 +26,15 @@
 - Need to create/port umi defconfig in 5+ base before feature migration.
 - DTS migration should start from sm8250-xiaomi-* subset, not full tree copy.
 - Techpack features require subsystem-by-subsystem adaptation into 5+ driver layout.
+
+---
+
+## 分析总结
+
+| 优先级 | 任务 | 依据 |
+|--------|------|------|
+| P0 | 完成驱动集成清单 | Phase2Decision.py:driver_integration_runtime_blockers |
+| P1 | 改进DTB清单映射 | BuildDtbManifest.py 白名单优化 |
+| P1 | 增强运行时验证 | BuildRuntimeValidationSummary.py |
+| P2 | 增加自动化测试 | 边界条件覆盖 |
+| P2 | 文档完善 | 与代码变更同步 |

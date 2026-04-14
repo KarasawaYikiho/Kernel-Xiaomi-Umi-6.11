@@ -31,3 +31,6 @@ python Tools/Porting/RepoSanityCheck.py
 python Tools/Porting/SelftestDecisionFlow.py
 python -m compileall Tools/Porting
 ```
+
+- `RepoSanityCheck.py` is the preferred quick gate for script references, markdown links, and required ignore rules.
+- `compileall` may refresh local `__pycache__/` entries, which are expected to stay untracked.
