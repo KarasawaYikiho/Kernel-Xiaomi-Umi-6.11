@@ -31,6 +31,7 @@ Xiaomi 10 (`umi`) 内核迁移编排仓库。CI 驱动从 SO-TS 4.19 迁移到 5
 | `source_repo` | SO-TS 4.19 仓库 | 源内核 |
 | `target_repo` | yefxx 5+ 仓库 | 目标内核 |
 | `bootimg_required_bytes` | `134217728` | 目标 boot.img 大小 |
+| `official_bootimg_url` | (可选) | 作为主 Boot 基线的官方 stock boot.img 直链 |
 | `bootimg_ramdisk_url` | (可选) | 自定义 ramdisk |
 | `bootimg_prebuilt_url` | (可选) | 回退 boot.img URL，优先于提交 stock boot.img 到仓库 |
 | `official_rom_zip` | (可选) | 用于对齐基线的官方 ROM zip 路径或 URL |

@@ -35,6 +35,10 @@ on:
         description: "optional path or URL to the official UMI ROM zip used as alignment baseline"
         required: false
         default: ""
+      official_bootimg_url:
+        description: "optional direct URL to the official stock boot.img used as the primary boot baseline"
+        required: false
+        default: ""
       bootimg_ramdisk_url:
         description: "optional URL to fetch ramdisk.cpio.gz (or a zip containing ramdisk payload) for release bootimg build"
         required: false
@@ -51,6 +55,7 @@ jobs:
     env:
       BOOTIMG_REQUIRED_BYTES: ${{ github.event.inputs.bootimg_required_bytes || '134217728' }}
       OFFICIAL_ROM_ZIP: ${{ github.event.inputs.official_rom_zip || '' }}
+      OFFICIAL_BOOTIMG_URL: ${{ github.event.inputs.official_bootimg_url || '' }}
       BOOTIMG_RAMDISK_URL: ${{ github.event.inputs.bootimg_ramdisk_url || '' }}
       BOOTIMG_PREBUILT_URL: ${{ github.event.inputs.bootimg_prebuilt_url || '' }}
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true

@@ -17,7 +17,7 @@ Automation scripts for `ROM-Aligned-Umi-Port.yml`.
 11. `WriteRunMeta.sh` — Write run metadata
 12. `RunPostprocessSuite.sh` — Postprocess chain
 
-`PrepareReleaseBootimg.sh` resolves stock boot baselines in this order: local/external official ROM package, extracted ROM directory, local non-git `Porting/OfficialRomBaseline/boot.img`, `ROM_BOOTIMG_URL`, then generic `bootimg_prebuilt_url`.
+`PrepareReleaseBootimg.sh` resolves stock boot baselines in this order: official ROM zip, direct `official_bootimg_url`, extracted ROM directory, local non-git `Porting/OfficialRomBaseline/boot.img`, `ROM_BOOTIMG_URL`, then generic `bootimg_prebuilt_url`.
 
 ## Key Reports
 
@@ -38,3 +38,4 @@ python -m compileall Tools/Porting
 - `RepoSanityCheck.py` is the preferred quick gate for script references, markdown links, and required ignore rules.
 - `compileall` may refresh local `__pycache__/` entries, which are expected to stay untracked.
 - Keep oversized stock `boot.img` files out of git. Pin their size/hash in `Porting/OfficialRomBaseline/Manifest.json` and `BootImageBaseline.env`, then fetch them from ROM inputs or URLs when needed.
+- `ValidateBootImage.py` now treats official boot reference binding as a hard gate: format, size, header version, and trusted source metadata must all line up before `flash_ready=yes`.

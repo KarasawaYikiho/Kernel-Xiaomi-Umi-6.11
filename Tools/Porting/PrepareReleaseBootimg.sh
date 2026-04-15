@@ -21,6 +21,7 @@ prebuilt_url="${BOOTIMG_PREBUILT_URL:-}"
 dtb_path="${BOOTIMG_DTB_PATH:-}"
 mkbootimg_cmd=""
 official_rom_zip="${OFFICIAL_ROM_ZIP:-$DEFAULT_OFFICIAL_ROM_ZIP}"
+official_bootimg_url="${OFFICIAL_BOOTIMG_URL:-}"
 official_rom_dir="${OFFICIAL_ROM_DIR:-$DEFAULT_OFFICIAL_ROM_DIR}"
 python_cmd=""
 official_bootimg_path=""
@@ -265,6 +266,7 @@ write_bootimg_ok() {
     echo "required_bytes=$required_bytes"
     echo "source=$source_name"
     echo "source_ref=$source_ref"
+    echo "official_bootimg_url=$official_bootimg_url"
   } > "$OUT"
 }
 
@@ -378,6 +380,8 @@ fi
 if [[ -f "$official_rom_zip" ]]; then
   rom_source_used="$official_rom_zip"
   official_bootimg_path=""
+elif [[ -n "$official_bootimg_url" ]]; then
+  rom_source_used="$official_bootimg_url"
 elif [[ -f "$official_rom_dir/boot.img" ]]; then
   rom_source_used="$official_rom_dir"
   official_bootimg_path="$official_rom_dir/boot.img"

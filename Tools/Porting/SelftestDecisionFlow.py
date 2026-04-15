@@ -169,6 +169,25 @@ def main() -> int:
             "no",
         ),
         (
+            "reference-mismatch-routes-to-release-bootimg",
+            dict(
+                defconfig_rc="0",
+                build_rc="0",
+                dtbs_rc="0",
+                flash_status="candidate",
+                anykernel_ok="yes",
+                anykernel_validate_status="ok",
+                bootimg_status="reference_mismatch",
+                driver_integration_status="complete",
+                driver_integration_pending="",
+                rom_alignment_status="pending",
+                rom_alignment_pending="bootimg_release_packaging",
+                runtime_validation_overall="UNKNOWN",
+            ),
+            "prepare-release-bootimg",
+            "no",
+        ),
+        (
             "runtime-ready-blocked-by-rom-alignment-gap",
             dict(
                 defconfig_rc="0",

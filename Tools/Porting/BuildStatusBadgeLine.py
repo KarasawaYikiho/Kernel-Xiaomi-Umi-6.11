@@ -28,13 +28,14 @@ def main() -> int:
     failed_step = r.get("runtime_validation_failed_step", "")
     release_status = r.get("release_status", "unknown")
     rom_alignment = r.get("rom_alignment_status", "pending")
-    rom_bootimg = f"{r.get('bootimg_rom_size_match', 'unknown')}/{r.get('bootimg_rom_sha256_match', 'unknown')}"
+    rom_bootimg = f"{r.get('bootimg_rom_size_match', 'unknown')}/{r.get('bootimg_rom_header_version_match', 'unknown')}/{r.get('bootimg_official_reference_gate', 'no')}"
     magisk_ready = (
         "yes"
         if release_status == "ready"
         and r.get("bootimg_status", "missing") == "ok"
         and r.get("bootimg_rom_size_match", "unknown") == "yes"
-        and r.get("bootimg_rom_sha256_match", "unknown") == "yes"
+        and r.get("bootimg_rom_header_version_match", "unknown") == "yes"
+        and r.get("bootimg_official_reference_gate", "no") == "yes"
         else "no"
     )
 

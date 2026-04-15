@@ -43,7 +43,8 @@ def main() -> int:
     bootimg_ok = bootimg.get("status", "missing") == "ok"
     bootimg_rom_aligned = (
         bootimg.get("rom_size_match", "unknown") == "yes"
-        and bootimg.get("rom_sha256_match", "unknown") == "yes"
+        and bootimg.get("rom_header_version_match", "unknown") == "yes"
+        and bootimg.get("official_reference_gate", "no") == "yes"
     )
 
     status = "not_ready"
@@ -81,6 +82,8 @@ def main() -> int:
                 f"bootimg_status={bootimg.get('status', 'missing')}",
                 f"bootimg_rom_size_match={bootimg.get('rom_size_match', 'unknown')}",
                 f"bootimg_rom_sha256_match={bootimg.get('rom_sha256_match', 'unknown')}",
+                f"bootimg_rom_header_version_match={bootimg.get('rom_header_version_match', 'unknown')}",
+                f"bootimg_official_reference_gate={bootimg.get('official_reference_gate', 'no')}",
             ]
         )
         + "\n",

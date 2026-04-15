@@ -134,7 +134,12 @@ def derive_next_action(
     if runtime_validation_overall == "FAIL":
         next_action = "analyze-runtime-failure"
     elif runtime_validation_overall == "PASS":
-        if bootimg_status in ("missing", "size_mismatch", "invalid_format"):
+        if bootimg_status in (
+            "missing",
+            "size_mismatch",
+            "invalid_format",
+            "reference_mismatch",
+        ):
             next_action = "prepare-release-bootimg"
         elif rom_alignment_status != "complete" and rom_alignment_pending:
             next_action = "prepare-release-bootimg"
@@ -149,6 +154,7 @@ def derive_next_action(
         "missing",
         "size_mismatch",
         "invalid_format",
+        "reference_mismatch",
     ):
         next_action = "prepare-release-bootimg"
 

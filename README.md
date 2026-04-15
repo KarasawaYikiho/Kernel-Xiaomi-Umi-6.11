@@ -29,6 +29,7 @@ Run **`ROM-Aligned-Umi-Port.yml`** workflow, then inspect:
 | `source_repo` | SO-TS 4.19 repo | Source kernel |
 | `target_repo` | yefxx 5+ repo | Target kernel |
 | `bootimg_required_bytes` | `134217728` | Target boot.img size |
+| `official_bootimg_url` | (optional) | Direct official stock boot.img URL used as the primary boot baseline |
 | `bootimg_ramdisk_url` | (optional) | Custom ramdisk |
 | `bootimg_prebuilt_url` | (optional) | Fallback boot.img URL, preferred over committing stock boot.img |
 | `official_rom_zip` | (optional) | Official ROM zip path or URL for alignment baseline |
