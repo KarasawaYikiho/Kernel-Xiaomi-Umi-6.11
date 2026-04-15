@@ -1,0 +1,43 @@
+{
+  "device": "umi",
+  "rom_package": {
+    "label": "UMI OS1.0.5.0.TJBCNXM",
+    "android_version": "13",
+    "post_build": "Xiaomi/umi/umi:13/TKQ1.221114.001/V816.0.5.0.TJBCNXM:user/release-keys",
+    "post_build_incremental": "V816.0.5.0.TJBCNXM",
+    "post_security_patch_level": "2024-03-01"
+  },
+  "bootimg": {
+    "required_bytes": 134217728,
+    "sha256": "95f61211e885d05047f152977077d2019e361390b635342b91f6fa8cebd56dca",
+    "header_version_guess": 2,
+    "pagesize": 4096,
+    "base": "0x00000000"
+  },
+  "firmware": {
+    "dtbo.img": {
+      "size": 33554432,
+      "sha256": "5a4a3cf8fdb3e78c16c7f155f1195eed332cf78993562a36d02bac632d09ab70"
+    },
+    "vbmeta.img": {
+      "size": 8192,
+      "sha256": "04f103061f80bdc0805c85b66c1679d9c441546fd1dbc54d4278939f6cdace88"
+    },
+    "vbmeta_system.img": {
+      "size": 4096,
+      "sha256": "848c54c8e2a057c74952ae877afbd571854765acc84eb2e29351b2636236a52d"
+    }
+  },
+  "dynamic_partitions": {
+    "group": "qti_dynamic_partitions",
+    "max_size": 9126805504,
+    "partitions": {
+      "system": 1203900416,
+      "vendor": 1740369920,
+      "product": 4297064448,
+      "odm": 134217728,
+      "system_ext": 664535040,
+      "mi_ext": 2646016
+    }
+  }
+}

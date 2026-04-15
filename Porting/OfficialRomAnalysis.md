@@ -182,3 +182,31 @@ set_progress(1.000000);
 2. Keep using extracted metadata + partition ops + hash evidence for reproducibility and regression tracking.
 3. Compare boot/dtbo/vbmeta hashes against CI-generated artifacts to validate release-chain consistency.
 4. Continue kernel-side integration via open-source references; use official ROM package as validation target, not code donor.
+
+## Project Alignment Note
+
+This project targets a 6+ kernel baseline built from source rather than reproducing Xiaomi's stock 4.19 kernel.
+
+The official UMI ROM package is used as a reference extraction source and validation baseline for:
+- boot chain expectations
+- `boot.img` size and packaging constraints
+- `dtbo` / `vbmeta` / dynamic partition baseline
+- runtime validation against official userspace
+
+The official ROM is not treated as a code donor and is not the target kernel version for this repository. Kernel-side work continues on the 6+ source baseline, while official ROM artifacts remain reference evidence for compatibility and release gating.
+
+## Current Alignment Gap
+
+Compared with the official ROM baseline, the latest Phase2 action artifact still has the following release-chain gaps:
+- release-grade `boot.img` generation is not complete
+- ROM-aligned boot chain consistency is not yet confirmed
+- DTB coverage is incomplete against the current target manifest
+- device-side runtime validation remains pending
+
+## Task Guidance
+
+1. Keep the kernel baseline on 6+ and do not regress toward stock 4.19.
+2. Use the official ROM only as reference evidence for `boot` / `dtbo` / `vbmeta` / partition expectations.
+3. Prioritize release boot image reproducibility and ROM boot-chain alignment before expanding feature scope.
+4. Resolve DTB manifest-to-build mismatches so required target entries are either buildable or reclassified correctly.
+5. Complete device-side runtime validation against the official ROM environment.

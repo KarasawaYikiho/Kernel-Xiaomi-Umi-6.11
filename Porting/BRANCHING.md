@@ -1,6 +1,6 @@
 # Branching Strategy
 
-- `main` — Integration branch
+- `master` — Integration branch
 - `port/phase0-*` — Baseline lock
 - `port/phase1-*` — Inventory/gap analysis
 - `port/phase2-*` — Migration/build
@@ -10,6 +10,6 @@
 ## Merge Checklist
 
 - [ ] Workflow run with artifacts
-- [ ] phase2-report.txt exists
+- [ ] `artifacts/phase2-report.txt` exists
 - [ ] CHANGELOG updated
 - [ ] Docs updated

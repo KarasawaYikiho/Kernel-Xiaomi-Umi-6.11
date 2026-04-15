@@ -32,6 +32,8 @@ def main() -> int:
         anykernel_ok=anyk,
         anykernel_validate_status=anyk_val,
         manifest_hit_ratio=hit_ratio,
+        rom_alignment_status=report.get("rom_alignment_status", "pending"),
+        rom_alignment_pending=report.get("rom_alignment_pending", ""),
         runtime_validation_overall=runtime_overall,
         runtime_validation_failed_step=runtime_failed_step,
     )
@@ -45,6 +47,8 @@ def main() -> int:
                 f"anykernel_ok={anyk}",
                 f"anykernel_validate_status={anyk_val}",
                 f"manifest_hit_ratio={hit_ratio:.3f}",
+                f"rom_alignment_status={report.get('rom_alignment_status', 'pending')}",
+                f"rom_alignment_pending={report.get('rom_alignment_pending', '')}",
                 f"build_rc={build_rc}",
                 f"dtbs_rc={dtbs_rc}",
                 f"runtime_validation_overall={runtime_overall}",

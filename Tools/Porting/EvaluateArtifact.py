@@ -15,6 +15,10 @@ def parse_count(value: str) -> int:
     return int(re.sub(r"\D", "", value or "0") or 0)
 
 
+def is_candidate_hint(value: str) -> bool:
+    return value.strip().lower() in {"candidate", "yes", "ready"}
+
+
 def main() -> int:
     ART.mkdir(parents=True, exist_ok=True)
     if not PACK_INFO.exists():
@@ -39,12 +43,13 @@ def main() -> int:
     bootimg_ok = bootimg.get("status", "missing") == "ok"
     bootimg_rom_aligned = (
         bootimg.get("rom_size_match", "unknown") == "yes"
-        and bootimg.get("rom_sha256_match", "unknown") == "yes"
+        and bootimg.get("rom_header_version_match", "unknown") == "yes"
+        and bootimg.get("official_reference_gate", "no") == "yes"
     )
 
     status = "not_ready"
     reason = "insufficient-xiaomi-dtb"
-    if xiaomi_dtb_count >= 1 and hint == "candidate":
+    if xiaomi_dtb_count >= 1 and is_candidate_hint(hint):
         if not anykernel_ok:
             reason = "candidate-missing-anykernel"
         elif not anykernel_validate_ok:
@@ -77,6 +82,8 @@ def main() -> int:
                 f"bootimg_status={bootimg.get('status', 'missing')}",
                 f"bootimg_rom_size_match={bootimg.get('rom_size_match', 'unknown')}",
                 f"bootimg_rom_sha256_match={bootimg.get('rom_sha256_match', 'unknown')}",
+                f"bootimg_rom_header_version_match={bootimg.get('rom_header_version_match', 'unknown')}",
+                f"bootimg_official_reference_gate={bootimg.get('official_reference_gate', 'no')}",
             ]
         )
         + "\n",

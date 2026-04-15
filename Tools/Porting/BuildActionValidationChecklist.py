@@ -43,7 +43,8 @@ def main() -> int:
         release_status == "ready"
         and bootimg_status == "ok"
         and report.get("bootimg_rom_size_match", "unknown") == "yes"
-        and report.get("bootimg_rom_sha256_match", "unknown") == "yes"
+        and report.get("bootimg_rom_header_version_match", "unknown") == "yes"
+        and report.get("bootimg_official_reference_gate", "no") == "yes"
     )
 
     blockers: list[str] = []
@@ -110,6 +111,9 @@ def main() -> int:
         f"- bootimg_size_bytes: `{bootimg_size}`",
         f"- bootimg_required_bytes: `{bootimg_required}`",
         f"- bootimg_required_bytes_parse: `{bootimg_required_parse}`",
+        f"- bootimg_rom_header_version_match: `{report.get('bootimg_rom_header_version_match', 'unknown')}`",
+        f"- bootimg_official_reference_gate: `{report.get('bootimg_official_reference_gate', 'no')}`",
+        f"- bootimg_build_source: `{report.get('bootimg_build_source', '') or 'unknown'}`",
         f"- decision_consistency: `{consistency_status}`",
         f"- decision_consistency_errors: `{consistency_errors or 'none'}`",
         f"- driver_integration_status: `{driver_integration_status}`",

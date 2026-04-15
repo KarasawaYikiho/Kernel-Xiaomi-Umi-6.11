@@ -71,7 +71,8 @@ def main() -> int:
         release_status == "ready"
         and bootimg_status == "ok"
         and report.get("bootimg_rom_size_match", "unknown") == "yes"
-        and report.get("bootimg_rom_sha256_match", "unknown") == "yes"
+        and report.get("bootimg_rom_header_version_match", "unknown") == "yes"
+        and report.get("bootimg_official_reference_gate", "no") == "yes"
     )
 
     if not magisk_patch_ready:

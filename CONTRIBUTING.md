@@ -9,7 +9,7 @@ Porting orchestrator (workflow + scripts + diagnostics), not kernel source.
 ## Before You Start
 
 1. Read `README.md`
-2. Read `PortingPlan.md`
+2. Read `Porting-Plan.md`
 3. Check `Porting/CHANGELOG.md`
 
 ## Branch Strategy
@@ -23,13 +23,10 @@ Porting orchestrator (workflow + scripts + diagnostics), not kernel source.
 - Validation evidence
 - Risk notes for workflow/script changes
 
-## Reference Sources
+## Source Rules
 
-- SO-TS: `android_kernel_xiaomi_sm8250`
-- 5+ baseline: `yefxx/xiaomi-umi-linux-kernel`
-- Driver refs: `UtsavBalar1231/*`
+Reference sources are listed in `README.md` and `Porting/README.md`.
 
-Rules:
 - Author IDs are discovery inputs
 - No blind subtree copy
 - No proprietary blob import
@@ -39,6 +36,7 @@ Rules:
 - Update docs when behavior changes
 - Require CI evidence
 - Keep `CHANGELOG.md` concise
+- Follow the repository hygiene rules in `README.md`
 
 ## Security
 

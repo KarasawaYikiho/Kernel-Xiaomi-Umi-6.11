@@ -27,6 +27,7 @@ def main() -> int:
     bexit = parse_kv(ART / "build-exit.txt")
     complete = parse_kv(ART / "artifact-completeness.txt")
     driver = parse_kv(ART / "driver-integration-status.txt")
+    rom_align = parse_kv(ART / "rom-alignment-status.txt")
     runtime_result = parse_kv(ART / "runtime-validation-result.txt")
 
     # derive a simple decision hint for next step automation
@@ -48,6 +49,8 @@ def main() -> int:
         bootimg_status=boot.get("status", "missing"),
         driver_integration_status=driver.get("status", "pending"),
         driver_integration_pending=driver.get("pending", ""),
+        rom_alignment_status=rom_align.get("status", "pending"),
+        rom_alignment_pending=rom_align.get("pending", ""),
         runtime_validation_overall=runtime_result.get("overall", "UNKNOWN"),
     )
     runtime_ready = derive_runtime_ready(next_action)
@@ -87,8 +90,15 @@ def main() -> int:
         f"bootimg_size_match={boot.get('size_match', 'no')}",
         f"bootimg_rom_expected_size_bytes={boot.get('rom_expected_size_bytes', '')}",
         f"bootimg_rom_expected_sha256={boot.get('rom_expected_sha256', '')}",
+        f"bootimg_rom_expected_header_version={boot.get('rom_expected_header_version', '')}",
         f"bootimg_rom_size_match={boot.get('rom_size_match', 'unknown')}",
         f"bootimg_rom_sha256_match={boot.get('rom_sha256_match', 'unknown')}",
+        f"bootimg_rom_header_version_match={boot.get('rom_header_version_match', 'unknown')}",
+        f"bootimg_official_reference_present={boot.get('official_reference_present', 'no')}",
+        f"bootimg_official_reference_gate={boot.get('official_reference_gate', 'no')}",
+        f"bootimg_official_reference_gate_reasons={boot.get('official_reference_gate_reasons', '')}",
+        f"bootimg_build_source={boot.get('bootimg_build_source', '')}",
+        f"bootimg_build_source_ref={boot.get('bootimg_build_source_ref', '')}",
         f"bootimg_build_status={boot_build.get('status', 'unknown')}",
         f"bootimg_build_reason={boot_build.get('reason', 'n/a')}",
         f"bootimg_build_missing={boot_build.get('missing', '')}",
@@ -101,6 +111,9 @@ def main() -> int:
         f"driver_integration_status={driver.get('status', 'pending')}",
         f"driver_integration_reason={driver.get('reason', 'n/a')}",
         f"driver_integration_pending={driver.get('pending', '')}",
+        f"rom_alignment_status={rom_align.get('status', 'pending')}",
+        f"rom_alignment_reason={rom_align.get('reason', 'n/a')}",
+        f"rom_alignment_pending={rom_align.get('pending', '')}",
         f"runtime_validation_status={runtime_result.get('status', 'missing_input')}",
         f"runtime_validation_overall={runtime_result.get('overall', 'UNKNOWN')}",
         f"runtime_validation_boot_method={runtime_result.get('boot_method', 'unknown')}",

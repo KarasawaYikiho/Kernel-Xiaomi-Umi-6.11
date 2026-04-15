@@ -34,7 +34,8 @@ def main() -> int:
         report.get("release_status", "unknown") == "ready"
         and report.get("bootimg_status", "missing") == "ok"
         and report.get("bootimg_rom_size_match", "unknown") == "yes"
-        and report.get("bootimg_rom_sha256_match", "unknown") == "yes"
+        and report.get("bootimg_rom_header_version_match", "unknown") == "yes"
+        and report.get("bootimg_official_reference_gate", "no") == "yes"
     )
 
     obj = {
@@ -82,10 +83,27 @@ def main() -> int:
             "bootimg_rom_expected_sha256": report.get(
                 "bootimg_rom_expected_sha256", ""
             ),
+            "bootimg_rom_expected_header_version": report.get(
+                "bootimg_rom_expected_header_version", ""
+            ),
             "bootimg_rom_size_match": report.get("bootimg_rom_size_match", "unknown"),
             "bootimg_rom_sha256_match": report.get(
                 "bootimg_rom_sha256_match", "unknown"
             ),
+            "bootimg_rom_header_version_match": report.get(
+                "bootimg_rom_header_version_match", "unknown"
+            ),
+            "bootimg_official_reference_present": report.get(
+                "bootimg_official_reference_present", "no"
+            ),
+            "bootimg_official_reference_gate": report.get(
+                "bootimg_official_reference_gate", "no"
+            ),
+            "bootimg_official_reference_gate_reasons": report.get(
+                "bootimg_official_reference_gate_reasons", ""
+            ),
+            "bootimg_build_source": report.get("bootimg_build_source", ""),
+            "bootimg_build_source_ref": report.get("bootimg_build_source_ref", ""),
             "bootimg_build_status": report.get("bootimg_build_status", "unknown"),
             "bootimg_build_reason": report.get("bootimg_build_reason", "n/a"),
             "bootimg_build_missing": report.get("bootimg_build_missing", ""),

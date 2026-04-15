@@ -3,8 +3,10 @@ from __future__ import annotations
 
 from pathlib import Path
 import hashlib
+import json
 import os
 import re
+import struct
 
 ANDROID_MAGIC = b"ANDROID!"
 ZIP_MAGICS = (b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08")
@@ -12,6 +14,9 @@ ZIP_MAGICS = (b"PK\x03\x04", b"PK\x05\x06", b"PK\x07\x08")
 ART = Path("artifacts")
 OUT = ART / "bootimg-info.txt"
 ROM_ANALYSIS = Path("Porting/OfficialRomAnalysis.md")
+ROM_BASELINE_ENV = Path("Porting/OfficialRomBaseline/BootImageBaseline.env")
+BOOT_BUILD = ART / "bootimg-build.txt"
+OFFICIAL_ROM_BASELINE = ART / "official-rom-baseline.json"
 DEFAULT_REQUIRED_BYTES = 134217728  # 128 MiB
 
 
@@ -75,11 +80,56 @@ def _load_rom_boot_reference() -> tuple[str, str]:
     return m.group(1), m.group(2).lower()
 
 
+def _load_env_kv(path: Path) -> dict[str, str]:
+    if not path.exists():
+        return {}
+    out: dict[str, str] = {}
+    for raw in path.read_text(encoding="utf-8", errors="ignore").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        out[key.strip()] = value.strip()
+    return out
+
+
+def _load_json(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8", errors="ignore"))
+    except Exception:
+        return {}
+
+
+def _parse_header_version(path: Path) -> str:
+    try:
+        with path.open("rb") as f:
+            data = f.read(44)
+        if len(data) < 44 or data[:8] != ANDROID_MAGIC:
+            return ""
+        return str(struct.unpack("<I", data[40:44])[0])
+    except Exception:
+        return ""
+
+
 def main() -> int:
     required_bytes, parse_note = parse_required_bytes(
         os.getenv("BOOTIMG_REQUIRED_BYTES")
     )
     rom_expected_size, rom_expected_sha = _load_rom_boot_reference()
+    baseline_env = _load_env_kv(ROM_BASELINE_ENV)
+    baseline_json = _load_json(OFFICIAL_ROM_BASELINE)
+    boot_build = _load_env_kv(BOOT_BUILD)
+    expected_header_version = baseline_env.get("BOOTIMG_HEADER_VERSION", "")
+    baseline_url = baseline_env.get("ROM_BOOTIMG_URL", "")
+    official_bootimg_url = os.getenv("OFFICIAL_BOOTIMG_URL", "").strip()
+    baseline_source_file = str(baseline_json.get("source_file", "") or "")
+    source = boot_build.get("source", "")
+    source_ref = boot_build.get("source_ref", "")
+    strict_official_reference = os.getenv(
+        "BOOTIMG_STRICT_OFFICIAL_REFERENCE", "yes"
+    ).strip().lower() in {"1", "true", "yes", "on"}
 
     bootimg = ART / "boot.img"
     if not bootimg.exists():
@@ -94,8 +144,17 @@ def main() -> int:
                 f"required_bytes_parse={parse_note}",
                 f"rom_expected_size_bytes={rom_expected_size}",
                 f"rom_expected_sha256={rom_expected_sha}",
+                f"rom_expected_header_version={expected_header_version}",
+                f"bootimg_build_source={source}",
+                f"bootimg_build_source_ref={source_ref}",
+                f"official_bootimg_url={official_bootimg_url}",
+                f"baseline_bootimg_url={baseline_url}",
+                f"official_reference_present={'yes' if (rom_expected_size or rom_expected_sha or expected_header_version or official_bootimg_url or baseline_url or baseline_source_file) else 'no'}",
                 "rom_size_match=unknown",
                 "rom_sha256_match=unknown",
+                "rom_header_version_match=unknown",
+                "official_reference_gate=no",
+                "official_reference_gate_reasons=bootimg-not-found",
                 "size_match=no",
                 "flash_ready=no",
             ]
@@ -106,12 +165,61 @@ def main() -> int:
     size = bootimg.stat().st_size
     sha = _sha256(bootimg)
     detected_format, header_magic = _detect_format(bootimg)
+    actual_header_version = _parse_header_version(bootimg)
     rom_size_match = "unknown"
     rom_sha_match = "unknown"
+    rom_header_match = "unknown"
     if rom_expected_size:
         rom_size_match = "yes" if str(size) == rom_expected_size else "no"
     if rom_expected_sha:
         rom_sha_match = "yes" if sha == rom_expected_sha else "no"
+    if expected_header_version:
+        rom_header_match = (
+            "yes" if actual_header_version == expected_header_version else "no"
+        )
+
+    official_reference_present = (
+        "yes"
+        if (
+            rom_expected_size
+            or rom_expected_sha
+            or expected_header_version
+            or official_bootimg_url
+            or baseline_url
+            or baseline_source_file
+        )
+        else "no"
+    )
+    official_reference_gate = "yes"
+    gate_reasons: list[str] = []
+    if strict_official_reference and official_reference_present != "yes":
+        official_reference_gate = "no"
+        gate_reasons.append("official_reference_missing")
+    if strict_official_reference and not source:
+        official_reference_gate = "no"
+        gate_reasons.append("boot_build_source_missing")
+    elif source and source not in {
+        "official_rom_baseline",
+        "baseline_url",
+        "prebuilt_url",
+        "mkbootimg",
+    }:
+        official_reference_gate = "no"
+        gate_reasons.append(f"boot_build_source_untrusted:{source}")
+    if (
+        detected_format == "android_bootimg"
+        and expected_header_version
+        and rom_header_match != "yes"
+    ):
+        official_reference_gate = "no"
+        gate_reasons.append("header_version_mismatch")
+    if (
+        detected_format == "android_bootimg"
+        and rom_expected_size
+        and rom_size_match != "yes"
+    ):
+        official_reference_gate = "no"
+        gate_reasons.append("size_mismatch_vs_official")
 
     # BOOTIMG_REQUIRED_BYTES is treated as the final target size.
     if detected_format != "android_bootimg":
@@ -132,6 +240,10 @@ def main() -> int:
         status = "ok" if size_match == "yes" else "size_mismatch"
         reason = "release-ready-size-ok" if size_match == "yes" else "size-not-target"
 
+    if status == "ok" and official_reference_gate != "yes":
+        status = "reference_mismatch"
+        reason = gate_reasons[0] if gate_reasons else "official-reference-gate-failed"
+
     write_kv(
         [
             f"status={status}",
@@ -143,12 +255,22 @@ def main() -> int:
             f"required_bytes_parse={parse_note}",
             f"format={detected_format}",
             f"header_magic={header_magic}",
+            f"header_version={actual_header_version}",
             f"size_match={size_match}",
             f"rom_expected_size_bytes={rom_expected_size}",
             f"rom_expected_sha256={rom_expected_sha}",
+            f"rom_expected_header_version={expected_header_version}",
             f"rom_size_match={rom_size_match}",
             f"rom_sha256_match={rom_sha_match}",
-            f"flash_ready={'yes' if status == 'ok' and size_match == 'yes' else 'no'}",
+            f"rom_header_version_match={rom_header_match}",
+            f"bootimg_build_source={source}",
+            f"bootimg_build_source_ref={source_ref}",
+            f"official_bootimg_url={official_bootimg_url}",
+            f"baseline_bootimg_url={baseline_url}",
+            f"official_reference_present={official_reference_present}",
+            f"official_reference_gate={official_reference_gate}",
+            "official_reference_gate_reasons=" + ",".join(gate_reasons),
+            f"flash_ready={'yes' if status == 'ok' and size_match == 'yes' and official_reference_gate == 'yes' else 'no'}",
         ]
     )
     print(f"wrote {OUT}: {status}")

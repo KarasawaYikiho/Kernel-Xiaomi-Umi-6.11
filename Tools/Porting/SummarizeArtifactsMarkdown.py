@@ -8,6 +8,15 @@ ART = Path("artifacts")
 OUT = ART / "artifact-summary.md"
 
 
+def append_unique(md: list[str], items: list[str]) -> None:
+    seen = set(md)
+    for item in items:
+        if item in seen:
+            continue
+        md.append(item)
+        seen.add(item)
+
+
 def main() -> int:
     ART.mkdir(parents=True, exist_ok=True)
     r = parse_kv(ART / "phase2-report.txt")
@@ -47,9 +56,10 @@ def main() -> int:
         f"- Runtime Validation Result: `{rv.get('overall', 'UNKNOWN')}` ({rv.get('status', 'missing_input')})",
         f"- Runtime Validation Failed Step: `{rv.get('failed_step', '') or 'none'}`",
         f"- Boot Image: `{r.get('bootimg_status', 'missing')}` ({r.get('bootimg_reason', 'n/a')}) - release follow-up",
-        f"- Boot Image ROM Match: `size={r.get('bootimg_rom_size_match', 'unknown')}` `sha256={r.get('bootimg_rom_sha256_match', 'unknown')}`",
+        f"- Boot Image ROM Match: `size={r.get('bootimg_rom_size_match', 'unknown')}` `header={r.get('bootimg_rom_header_version_match', 'unknown')}` `sha256={r.get('bootimg_rom_sha256_match', 'unknown')}`",
+        f"- Boot Image Official Reference Gate: `{r.get('bootimg_official_reference_gate', 'no')}` ({r.get('bootimg_official_reference_gate_reasons', '') or 'none'})",
         f"- Boot Image Build: `{r.get('bootimg_build_status', 'unknown')}` ({r.get('bootimg_build_reason', 'n/a')})",
-        f"- Magisk Patch Path: `{'ready' if r.get('release_status', 'unknown') == 'ready' and r.get('bootimg_status', 'missing') == 'ok' and r.get('bootimg_rom_size_match', 'unknown') == 'yes' and r.get('bootimg_rom_sha256_match', 'unknown') == 'yes' else 'blocked'}`",
+        f"- Magisk Patch Path: `{'ready' if r.get('release_status', 'unknown') == 'ready' and r.get('bootimg_status', 'missing') == 'ok' and r.get('bootimg_rom_size_match', 'unknown') == 'yes' and r.get('bootimg_rom_header_version_match', 'unknown') == 'yes' and r.get('bootimg_official_reference_gate', 'no') == 'yes' else 'blocked'}`",
         "",
         "## Next Focus",
         f"- Focus: `{n.get('focus', 'collect-more-data')}`",
@@ -68,38 +78,42 @@ def main() -> int:
     ]
 
     if next_action == "prepare-release-bootimg":
-        md.extend(
+        append_unique(
+            md,
             [
                 "- `bootimg-info.txt`",
                 "- `bootimg-build.txt`",
-            ]
+            ],
         )
 
     if next_action == "integrate-drivers-phase3":
-        md.extend(
+        append_unique(
+            md,
             [
                 "- `driver-integration-status.txt`",
                 "- `Porting/ReferenceDriversAnalysis.md`",
                 "- `Porting/OfficialRomAnalysis.md`",
-            ]
+            ],
         )
 
     if n.get("focus", "") == "improve-dtb-manifest-mapping":
-        md.extend(
+        append_unique(
+            md,
             [
                 "- `target_dtb_manifest.txt`",
                 "- `target_dtb_manifest_debug.txt`",
                 "- `dtb-postcheck.txt`",
                 "- `dtb-miss-analysis.txt`",
-            ]
+            ],
         )
 
     if r.get("runtime_ready", "no") == "yes":
-        md.extend(
+        append_unique(
+            md,
             [
                 "- `action-validation-checklist.md`",
                 "- `runtime-validation-summary.md`",
-            ]
+            ],
         )
 
     OUT.write_text("\n".join(md) + "\n", encoding="utf-8")

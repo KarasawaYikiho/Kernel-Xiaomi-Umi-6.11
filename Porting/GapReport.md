@@ -26,3 +26,34 @@
 - Need to create/port umi defconfig in 5+ base before feature migration.
 - DTS migration should start from sm8250-xiaomi-* subset, not full tree copy.
 - Techpack features require subsystem-by-subsystem adaptation into 5+ driver layout.
+
+## Official ROM Alignment Note
+
+This project is building a 6+ kernel baseline for `umi` from source, not reproducing Xiaomi's stock 4.19 kernel.
+
+The official ROM should be treated as a reference extraction source and validation baseline for:
+- `boot.img` size and packaging expectations
+- `dtbo` / `vbmeta` / dynamic partition baseline
+- boot-chain consistency checks
+- runtime validation on official userspace
+
+Therefore, the current gap against the official ROM should be understood as a compatibility and release-chain gap rather than a requirement to downgrade the target kernel version.
+
+## Current Release-Chain Gap
+
+- `boot.img` delivery is still incomplete in the latest Phase2 artifact
+- ROM boot / `dtbo` / `vbmeta` consistency is not yet confirmed
+- DTB target coverage remains incomplete
+- runtime validation is still pending on device
+
+---
+
+## 分析总结
+
+| 优先级 | 任务 | 依据 |
+|--------|------|------|
+| P0 | 完成驱动集成清单 | Phase2Decision.py:driver_integration_runtime_blockers |
+| P1 | 改进DTB清单映射 | BuildDtbManifest.py 白名单优化 |
+| P1 | 增强运行时验证 | BuildRuntimeValidationSummary.py |
+| P2 | 增加自动化测试 | 边界条件覆盖 |
+| P2 | 文档完善 | 与代码变更同步 |
