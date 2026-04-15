@@ -27,6 +27,7 @@ def main() -> int:
     bexit = parse_kv(ART / "build-exit.txt")
     complete = parse_kv(ART / "artifact-completeness.txt")
     driver = parse_kv(ART / "driver-integration-status.txt")
+    rom_align = parse_kv(ART / "rom-alignment-status.txt")
     runtime_result = parse_kv(ART / "runtime-validation-result.txt")
 
     # derive a simple decision hint for next step automation
@@ -48,6 +49,8 @@ def main() -> int:
         bootimg_status=boot.get("status", "missing"),
         driver_integration_status=driver.get("status", "pending"),
         driver_integration_pending=driver.get("pending", ""),
+        rom_alignment_status=rom_align.get("status", "pending"),
+        rom_alignment_pending=rom_align.get("pending", ""),
         runtime_validation_overall=runtime_result.get("overall", "UNKNOWN"),
     )
     runtime_ready = derive_runtime_ready(next_action)
@@ -101,6 +104,9 @@ def main() -> int:
         f"driver_integration_status={driver.get('status', 'pending')}",
         f"driver_integration_reason={driver.get('reason', 'n/a')}",
         f"driver_integration_pending={driver.get('pending', '')}",
+        f"rom_alignment_status={rom_align.get('status', 'pending')}",
+        f"rom_alignment_reason={rom_align.get('reason', 'n/a')}",
+        f"rom_alignment_pending={rom_align.get('pending', '')}",
         f"runtime_validation_status={runtime_result.get('status', 'missing_input')}",
         f"runtime_validation_overall={runtime_result.get('overall', 'UNKNOWN')}",
         f"runtime_validation_boot_method={runtime_result.get('boot_method', 'unknown')}",

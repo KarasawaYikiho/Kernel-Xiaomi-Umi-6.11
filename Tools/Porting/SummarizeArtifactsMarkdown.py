@@ -8,6 +8,15 @@ ART = Path("artifacts")
 OUT = ART / "artifact-summary.md"
 
 
+def append_unique(md: list[str], items: list[str]) -> None:
+    seen = set(md)
+    for item in items:
+        if item in seen:
+            continue
+        md.append(item)
+        seen.add(item)
+
+
 def main() -> int:
     ART.mkdir(parents=True, exist_ok=True)
     r = parse_kv(ART / "phase2-report.txt")
@@ -68,38 +77,42 @@ def main() -> int:
     ]
 
     if next_action == "prepare-release-bootimg":
-        md.extend(
+        append_unique(
+            md,
             [
                 "- `bootimg-info.txt`",
                 "- `bootimg-build.txt`",
-            ]
+            ],
         )
 
     if next_action == "integrate-drivers-phase3":
-        md.extend(
+        append_unique(
+            md,
             [
                 "- `driver-integration-status.txt`",
                 "- `Porting/ReferenceDriversAnalysis.md`",
                 "- `Porting/OfficialRomAnalysis.md`",
-            ]
+            ],
         )
 
     if n.get("focus", "") == "improve-dtb-manifest-mapping":
-        md.extend(
+        append_unique(
+            md,
             [
                 "- `target_dtb_manifest.txt`",
                 "- `target_dtb_manifest_debug.txt`",
                 "- `dtb-postcheck.txt`",
                 "- `dtb-miss-analysis.txt`",
-            ]
+            ],
         )
 
     if r.get("runtime_ready", "no") == "yes":
-        md.extend(
+        append_unique(
+            md,
             [
                 "- `action-validation-checklist.md`",
                 "- `runtime-validation-summary.md`",
-            ]
+            ],
         )
 
     OUT.write_text("\n".join(md) + "\n", encoding="utf-8")

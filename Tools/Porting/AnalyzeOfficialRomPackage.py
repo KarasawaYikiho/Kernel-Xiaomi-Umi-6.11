@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import struct
 import zipfile
@@ -10,6 +11,7 @@ from pathlib import Path
 DEFAULT_ROM_PATH = r"D:\GIT\MIUI_UMI_OS1.0.5.0.TJBCNXM_d01651ed86_13.0.zip"
 ROM_ZIP = Path(os.environ.get("OFFICIAL_ROM_ZIP", DEFAULT_ROM_PATH))
 OUT_MD = Path("Porting/OfficialRomAnalysis.md")
+OUT_BASELINE = Path("artifacts/official-rom-baseline.json")
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -65,6 +67,18 @@ def write_missing_report(path: Path) -> None:
         "3. Until ROM package is present, keep ROM consistency items pending in driver integration manifest."
     )
     OUT_MD.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    OUT_BASELINE.parent.mkdir(parents=True, exist_ok=True)
+    OUT_BASELINE.write_text(
+        json.dumps(
+            {
+                "status": "missing_source_package",
+                "expected_source": str(path),
+            },
+            indent=2,
+        )
+        + "\n",
+        encoding="utf-8",
+    )
 
 
 def main() -> int:
@@ -103,6 +117,7 @@ def main() -> int:
                 if n.startswith("firmware-update/") and not n.endswith("/")
             ]
         )
+        boot_data = zf.read("boot.img") if "boot.img" in names else b""
 
         lines: list[str] = []
         lines.append("# Official ROM Package Analysis (UMI OS1.0.5.0.TJBCNXM)")
@@ -163,9 +178,8 @@ def main() -> int:
         lines.append("")
 
         if "boot.img" in names:
-            boot = zf.read("boot.img")
             lines.append("## boot.img Header Snapshot")
-            lines.extend(boot_header_summary(boot))
+            lines.extend(boot_header_summary(boot_data))
             lines.append("")
 
         lines.append("## Integration Recommendations (Moderate)")
@@ -182,8 +196,35 @@ def main() -> int:
             "4. Continue kernel-side integration via open-source references; use official ROM package as validation target, not code donor."
         )
 
+        OUT_BASELINE.parent.mkdir(parents=True, exist_ok=True)
+        baseline = {
+            "status": "ok",
+            "source_file": str(ROM_ZIP),
+            "bootimg": {
+                "size": len(boot_data),
+                "sha256": sha256_bytes(boot_data) if boot_data else "",
+                "header_version_guess": struct.unpack("<I", boot_data[40:44])[0]
+                if len(boot_data) >= 44
+                else 0,
+            },
+            "firmware": {
+                name: {
+                    "size": len(zf.read(name)),
+                    "sha256": sha256_bytes(zf.read(name)),
+                }
+                for name in [
+                    "firmware-update/dtbo.img",
+                    "firmware-update/vbmeta.img",
+                    "firmware-update/vbmeta_system.img",
+                ]
+                if name in names
+            },
+        }
+        OUT_BASELINE.write_text(json.dumps(baseline, indent=2) + "\n", encoding="utf-8")
+
     OUT_MD.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"Wrote {OUT_MD}")
+    print(f"Wrote {OUT_BASELINE}")
     return 0
 
 

@@ -12,6 +12,8 @@ Planning and baseline analysis for UMI porting.
 | `GapReport.md` | Gap summary |
 | `ReferenceDriversAnalysis.md` | Donor driver analysis |
 | `OfficialRomAnalysis.md` | ROM metadata |
+| `OfficialRomBaseline/` | Repo-side ROM baseline metadata and compact validation images |
+| `OfficialRomAlignmentFramework.md` | ROM alignment execution framework |
 | `CHANGELOG.md` | Milestone history |
 | `BRANCHING.md` | Branch strategy |
 
@@ -20,3 +22,4 @@ Planning and baseline analysis for UMI porting.
 1. `../PortingPlan.md`
 2. Latest `CHANGELOG.md`
 3. `GapReport.md`
+4. `OfficialRomAlignmentFramework.md`

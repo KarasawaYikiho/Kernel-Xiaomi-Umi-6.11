@@ -9,6 +9,10 @@ ART=artifacts
 mkdir -p "$ART"
 OUT="$ART/bootimg-build.txt"
 DEFAULT_OFFICIAL_ROM_ZIP='D:\GIT\MIUI_UMI_OS1.0.5.0.TJBCNXM_d01651ed86_13.0.zip'
+DEFAULT_OFFICIAL_ROM_DIR='D:\GIT\MIUI_UMI'
+ROM_ANALYSIS='Porting/OfficialRomAnalysis.md'
+ROM_BASELINE_ENV='Porting/OfficialRomBaseline/BootImageBaseline.env'
+ROM_BASELINE_DIR='Porting/OfficialRomBaseline'
 
 kernel_path=""
 ramdisk_path="${BOOTIMG_RAMDISK_PATH:-}"
@@ -17,7 +21,11 @@ prebuilt_url="${BOOTIMG_PREBUILT_URL:-}"
 dtb_path="${BOOTIMG_DTB_PATH:-}"
 mkbootimg_cmd=""
 official_rom_zip="${OFFICIAL_ROM_ZIP:-$DEFAULT_OFFICIAL_ROM_ZIP}"
+official_rom_dir="${OFFICIAL_ROM_DIR:-$DEFAULT_OFFICIAL_ROM_DIR}"
 python_cmd=""
+official_bootimg_path=""
+rom_source_used=""
+rom_baseline_bootimg_path=""
 
 source "Tools/Porting/Common.sh"
 
@@ -105,6 +113,60 @@ PY
   fi
 }
 
+read_rom_analysis_value() {
+  local key="$1"
+  [[ -f "$ROM_ANALYSIS" ]] || return 1
+  if [[ -n "$python_cmd" ]]; then
+    "$python_cmd" - "$ROM_ANALYSIS" "$key" <<'PY'
+import re
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+key = sys.argv[2]
+text = path.read_text(encoding='utf-8', errors='ignore')
+
+patterns = {
+    'boot_size': r"`boot\.img`: size=`(\d+)`",
+    'boot_sha256': r"`boot\.img`: size=`\d+` sha256=`([0-9a-f]{64})`",
+    'header_version_guess': r"header_version_guess \(legacy offset\): `(\d+)`",
+}
+pat = patterns.get(key)
+if not pat:
+    raise SystemExit(1)
+m = re.search(pat, text, re.IGNORECASE)
+if m:
+    print(m.group(1))
+PY
+    return 0
+  fi
+  return 1
+}
+
+read_baseline_env_value() {
+  local key="$1"
+  [[ -f "$ROM_BASELINE_ENV" ]] || return 1
+  if [[ -n "$python_cmd" ]]; then
+    "$python_cmd" - "$ROM_BASELINE_ENV" "$key" <<'PY'
+import sys
+from pathlib import Path
+
+path = Path(sys.argv[1])
+key = sys.argv[2].strip()
+for raw in path.read_text(encoding='utf-8', errors='ignore').splitlines():
+    line = raw.strip()
+    if not line or line.startswith('#') or '=' not in line:
+        continue
+    k, v = line.split('=', 1)
+    if k.strip() == key:
+        print(v.strip())
+        break
+PY
+    return 0
+  fi
+  return 1
+}
+
 extract_bootimg_from_zip() {
   local zip_path="$1"
   local out_path="$2"
@@ -153,11 +215,31 @@ PY
 }
 
 extract_rom_support_images() {
-  local zip_path="$1"
+  local rom_ref="$1"
   local tmp_dtbo="$ART/rom-dtbo.tmp"
   local tmp_vbmeta="$ART/rom-vbmeta.tmp"
-  extract_named_from_zip "$zip_path" "firmware-update/dtbo.img" "$ART/dtbo.img" "$tmp_dtbo" || true
-  extract_named_from_zip "$zip_path" "firmware-update/vbmeta.img" "$ART/vbmeta.img" "$tmp_vbmeta" || true
+  local tmp_vbmeta_system="$ART/rom-vbmeta-system.tmp"
+  if [[ -d "$rom_ref" ]]; then
+    if [[ -f "$rom_ref/dtbo.img" ]]; then
+      cp -f "$rom_ref/dtbo.img" "$ART/dtbo.img"
+    elif [[ -f "$rom_ref/firmware-update/dtbo.img" ]]; then
+      cp -f "$rom_ref/firmware-update/dtbo.img" "$ART/dtbo.img"
+    fi
+    if [[ -f "$rom_ref/vbmeta.img" ]]; then
+      cp -f "$rom_ref/vbmeta.img" "$ART/vbmeta.img"
+    elif [[ -f "$rom_ref/firmware-update/vbmeta.img" ]]; then
+      cp -f "$rom_ref/firmware-update/vbmeta.img" "$ART/vbmeta.img"
+    fi
+    if [[ -f "$rom_ref/vbmeta_system.img" ]]; then
+      cp -f "$rom_ref/vbmeta_system.img" "$ART/vbmeta_system.img"
+    elif [[ -f "$rom_ref/firmware-update/vbmeta_system.img" ]]; then
+      cp -f "$rom_ref/firmware-update/vbmeta_system.img" "$ART/vbmeta_system.img"
+    fi
+    return 0
+  fi
+  extract_named_from_zip "$rom_ref" "firmware-update/dtbo.img" "$ART/dtbo.img" "$tmp_dtbo" || true
+  extract_named_from_zip "$rom_ref" "firmware-update/vbmeta.img" "$ART/vbmeta.img" "$tmp_vbmeta" || true
+  extract_named_from_zip "$rom_ref" "firmware-update/vbmeta_system.img" "$ART/vbmeta_system.img" "$tmp_vbmeta_system" || true
 }
 
 write_bootimg_ok() {
@@ -218,6 +300,25 @@ prepare_prebuilt_bootimg() {
   fi
 }
 
+prepare_official_rom_bootimg() {
+  local out_boot="$ART/boot.img"
+  local tmp_boot="$ART/official-rom-boot.tmp"
+  local source_boot="$ART/official-rom-boot-source.img"
+
+  rm -f "$out_boot" "$tmp_boot" "$source_boot"
+  if [[ -n "$official_bootimg_path" && -f "$official_bootimg_path" ]]; then
+    cp -f "$official_bootimg_path" "$source_boot"
+  elif [[ -n "$rom_baseline_bootimg_path" && -f "$rom_baseline_bootimg_path" ]]; then
+    cp -f "$rom_baseline_bootimg_path" "$source_boot"
+  elif [[ -n "$official_rom_zip" && -f "$official_rom_zip" ]]; then
+    extract_bootimg_from_zip "$official_rom_zip" "$source_boot" "$tmp_boot" || true
+  fi
+
+  if [[ -f "$source_boot" ]] && is_android_boot_image "$source_boot"; then
+    prepare_prebuilt_bootimg "$source_boot" "official_rom_baseline" "$rom_source_used"
+  fi
+}
+
 # kernel
 if [[ -f out/arch/arm64/boot/Image.gz ]]; then
   kernel_path="out/arch/arm64/boot/Image.gz"
@@ -260,16 +361,47 @@ if [[ -z "$dtb_path" && -s "$ART/umi_primary_dtb_paths.txt" ]]; then
   [[ -f "$cand" ]] && dtb_path="$cand"
 fi
 
-header_version="${BOOTIMG_HEADER_VERSION:-3}"
-base="${BOOTIMG_BASE:-0x00000000}"
-pagesize="${BOOTIMG_PAGESIZE:-4096}"
+detect_python || true
+
+if [[ -f "$ROM_BASELINE_DIR/boot.img" ]]; then
+  rom_baseline_bootimg_path="$ROM_BASELINE_DIR/boot.img"
+fi
+
+if [[ -n "$official_rom_zip" && "$official_rom_zip" == *"://"* ]]; then
+  official_rom_dl="$ART/official-rom-download.zip"
+  if fetch_file "$official_rom_zip" "$official_rom_dl"; then
+    official_rom_zip="$official_rom_dl"
+  fi
+fi
+
+if [[ -f "$official_rom_zip" ]]; then
+  rom_source_used="$official_rom_zip"
+  official_bootimg_path=""
+elif [[ -f "$official_rom_dir/boot.img" ]]; then
+  rom_source_used="$official_rom_dir"
+  official_bootimg_path="$official_rom_dir/boot.img"
+elif [[ -n "$rom_baseline_bootimg_path" ]]; then
+  rom_source_used="$ROM_BASELINE_DIR"
+fi
+
+baseline_header_version="$(read_baseline_env_value BOOTIMG_HEADER_VERSION 2>/dev/null || true)"
+baseline_boot_size="$(read_baseline_env_value BOOTIMG_REQUIRED_BYTES 2>/dev/null || true)"
+baseline_base="$(read_baseline_env_value BOOTIMG_BASE 2>/dev/null || true)"
+baseline_pagesize="$(read_baseline_env_value BOOTIMG_PAGESIZE 2>/dev/null || true)"
+
+rom_header_version="$(read_rom_analysis_value header_version_guess 2>/dev/null || true)"
+rom_boot_size="$(read_rom_analysis_value boot_size 2>/dev/null || true)"
+
+header_version="${BOOTIMG_HEADER_VERSION:-${baseline_header_version:-${rom_header_version:-3}}}"
+base="${BOOTIMG_BASE:-${baseline_base:-0x00000000}}"
+pagesize="${BOOTIMG_PAGESIZE:-${baseline_pagesize:-4096}}"
 cmdline="${BOOTIMG_CMDLINE:-}"
-required_bytes="${BOOTIMG_REQUIRED_BYTES:-134217728}"
+required_bytes="${BOOTIMG_REQUIRED_BYTES:-${baseline_boot_size:-${rom_boot_size:-134217728}}}"
 
 # preferred ROM-aligned fallback: use local official ROM package when available
-if [[ -f "$official_rom_zip" ]]; then
-  extract_rom_support_images "$official_rom_zip"
-  prepare_prebuilt_bootimg "$official_rom_zip" "official_rom_zip" "$official_rom_zip"
+if [[ -n "$rom_source_used" ]]; then
+  extract_rom_support_images "$rom_source_used"
+  prepare_official_rom_bootimg
 fi
 
 # fallback: use a prebuilt boot.img directly when mkbootimg inputs are unavailable

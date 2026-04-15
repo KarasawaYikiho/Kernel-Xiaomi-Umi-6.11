@@ -27,6 +27,7 @@ def main() -> int:
     runtime_boot_method = r.get("runtime_validation_boot_method", "unknown")
     failed_step = r.get("runtime_validation_failed_step", "")
     release_status = r.get("release_status", "unknown")
+    rom_alignment = r.get("rom_alignment_status", "pending")
     rom_bootimg = f"{r.get('bootimg_rom_size_match', 'unknown')}/{r.get('bootimg_rom_sha256_match', 'unknown')}"
     magisk_ready = (
         "yes"
@@ -53,7 +54,7 @@ def main() -> int:
 
     line = (
         f"build={build_rc} | flash={flash} | anykernel={anyk}/{anyk_reason}/{anyk_val} "
-        f"| driver_integration={driver_integration} | runtime_gate={runtime_gate} "
+        f"| driver_integration={driver_integration} | rom_alignment={rom_alignment} | runtime_gate={runtime_gate} "
         f"| runtime_result={runtime_result}{runtime_result_suffix} "
         f"| runtime_status={runtime_status}/{runtime_boot_method} | magisk_ready={magisk_ready} "
         f"| runtime_ready={runtime_ready}({runtime_marker}) | release={release_status} "

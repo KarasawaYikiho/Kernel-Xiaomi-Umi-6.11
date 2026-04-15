@@ -33,9 +33,9 @@ def check_python_compile() -> list[str]:
 
 def check_workflow_script_refs() -> list[str]:
     errs: list[str] = []
-    wf = ROOT / ".github" / "workflows" / "Phase2-Port-Umi.yml"
+    wf = ROOT / ".github" / "workflows" / "ROM-Aligned-Umi-Port.yml"
     if not wf.exists():
-        return ["missing workflow: .github/workflows/Phase2-Port-Umi.yml"]
+        return ["missing workflow: .github/workflows/ROM-Aligned-Umi-Port.yml"]
     text = wf.read_text(encoding="utf-8")
 
     sh_refs = re.findall(r"\./Tools/Porting/([\w\-]+\.sh)", text)

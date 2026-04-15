@@ -13,6 +13,7 @@ REF_REPORT = Path("Porting/ReferenceDriversAnalysis.md")
 INVENTORY = Path("Porting/Inventory.json")
 COPIED_DTS = ART / "copied_dts.txt"
 TARGET = Path("target")
+ROM_BASELINE_DIR = Path("Porting/OfficialRomBaseline")
 
 
 def _sha256(path: Path) -> str:
@@ -123,15 +124,20 @@ def main() -> int:
             ART / "umi_bundle" / "boot.img",
             Path("out/boot.img"),
             Path("out/arch/arm64/boot/boot.img"),
+            ROM_BASELINE_DIR / "boot.img",
         ]
     )
 
-    dtbo_local = _find_candidate_by_name(ART, ["dtbo.img"]) or _find_candidate_by_name(
-        Path("out"), ["dtbo.img"]
+    dtbo_local = (
+        _find_candidate_by_name(ART, ["dtbo.img"])
+        or _find_candidate_by_name(Path("out"), ["dtbo.img"])
+        or _find_first_existing([ROM_BASELINE_DIR / "dtbo.img"])
     )
-    vbmeta_local = _find_candidate_by_name(
-        ART, ["vbmeta.img"]
-    ) or _find_candidate_by_name(Path("out"), ["vbmeta.img"])
+    vbmeta_local = (
+        _find_candidate_by_name(ART, ["vbmeta.img"])
+        or _find_candidate_by_name(Path("out"), ["vbmeta.img"])
+        or _find_first_existing([ROM_BASELINE_DIR / "vbmeta.img"])
+    )
 
     boot_match = "no"
     dtbo_match = "no"

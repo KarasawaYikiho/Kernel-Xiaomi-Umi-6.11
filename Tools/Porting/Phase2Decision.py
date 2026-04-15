@@ -86,6 +86,8 @@ def derive_next_action(
     bootimg_status: str,
     driver_integration_status: str,
     driver_integration_pending: str = "",
+    rom_alignment_status: str = "pending",
+    rom_alignment_pending: str = "",
     runtime_validation_overall: str = "UNKNOWN",
 ) -> str:
     next_action = "collect-more-data"
@@ -123,10 +125,18 @@ def derive_next_action(
     ):
         next_action = "integrate-drivers-phase3"
 
+    if next_action == "ready-for-action-test" and rom_alignment_status not in (
+        "complete",
+        "unknown",
+    ):
+        next_action = "prepare-release-bootimg"
+
     if runtime_validation_overall == "FAIL":
         next_action = "analyze-runtime-failure"
     elif runtime_validation_overall == "PASS":
         if bootimg_status in ("missing", "size_mismatch", "invalid_format"):
+            next_action = "prepare-release-bootimg"
+        elif rom_alignment_status != "complete" and rom_alignment_pending:
             next_action = "prepare-release-bootimg"
         elif driver_integration_status != "complete" and split_csv(
             driver_integration_pending
@@ -160,6 +170,8 @@ def derive_next_focus(
     anykernel_ok: str,
     anykernel_validate_status: str,
     manifest_hit_ratio: float,
+    rom_alignment_status: str = "pending",
+    rom_alignment_pending: str = "",
     runtime_validation_overall: str = "UNKNOWN",
     runtime_validation_failed_step: str = "",
 ) -> tuple[str, str]:
@@ -170,6 +182,9 @@ def derive_next_focus(
     mapped = REPORT_NEXT_TO_FOCUS.get(report_next_action)
     if mapped:
         return mapped, "report_next_action"
+
+    if rom_alignment_status not in ("complete", "unknown") and rom_alignment_pending:
+        return "prepare-release-bootimg", "rom_alignment_incomplete"
 
     if (
         artifact_completeness == "partial"

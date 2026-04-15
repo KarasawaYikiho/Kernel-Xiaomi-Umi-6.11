@@ -12,3 +12,6 @@ target/
 .DS_Store
 Thumbs.db
 .ruff_cache/
+
+# Large local ROM baseline inputs
+Porting/OfficialRomBaseline/boot.img

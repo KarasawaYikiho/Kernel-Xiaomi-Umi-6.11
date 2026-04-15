@@ -34,6 +34,8 @@ def main() -> int:
         anykernel_ok=report.get("anykernel_ok", "no"),
         anykernel_validate_status=report.get("anykernel_validate_status", "unknown"),
         manifest_hit_ratio=to_float(report.get("manifest_hit_ratio", "0"), 0.0),
+        rom_alignment_status=report.get("rom_alignment_status", "pending"),
+        rom_alignment_pending=report.get("rom_alignment_pending", ""),
         runtime_validation_overall=report.get("runtime_validation_overall", "UNKNOWN"),
         runtime_validation_failed_step=report.get("runtime_validation_failed_step", ""),
     )

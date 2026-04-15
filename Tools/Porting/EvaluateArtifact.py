@@ -15,6 +15,10 @@ def parse_count(value: str) -> int:
     return int(re.sub(r"\D", "", value or "0") or 0)
 
 
+def is_candidate_hint(value: str) -> bool:
+    return value.strip().lower() in {"candidate", "yes", "ready"}
+
+
 def main() -> int:
     ART.mkdir(parents=True, exist_ok=True)
     if not PACK_INFO.exists():
@@ -44,7 +48,7 @@ def main() -> int:
 
     status = "not_ready"
     reason = "insufficient-xiaomi-dtb"
-    if xiaomi_dtb_count >= 1 and hint == "candidate":
+    if xiaomi_dtb_count >= 1 and is_candidate_hint(hint):
         if not anykernel_ok:
             reason = "candidate-missing-anykernel"
         elif not anykernel_validate_ok:
