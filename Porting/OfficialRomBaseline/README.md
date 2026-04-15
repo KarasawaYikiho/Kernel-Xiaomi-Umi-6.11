@@ -10,6 +10,7 @@ The purpose of these files is to make ROM alignment reproducible inside CI witho
 - Do not treat these files as kernel source input.
 - Keep large proprietary payloads out of git unless there is a concrete need.
 - Prefer metadata, hashes, header hints, and compact validation inputs.
+- Keep firmware image filenames in their canonical Android lowercase form so script lookups and package-relative names stay aligned.
 
 ## Files
 

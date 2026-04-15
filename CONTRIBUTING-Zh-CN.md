@@ -9,7 +9,7 @@
 ## 开始前
 
 1. 阅读 `README-Zh-CN.md`
-2. 阅读 `PortingPlan.md`
+2. 阅读 `Porting-Plan.md`
 3. 查看 `Porting/CHANGELOG.md`
 
 ## 分支策略
@@ -23,13 +23,10 @@
 - 验证证据
 - 风险说明
 
-## 参考源
+## 来源规则
 
-- SO-TS: `android_kernel_xiaomi_sm8250`
-- 5+ 基线: `yefxx/xiaomi-umi-linux-kernel`
-- 驱动参考: `UtsavBalar1231/*`
+参考源统一维护在 `README-Zh-CN.md` 和 `Porting/README.md`。
 
-规则：
 - 作者 ID 仅用于发现
 - 禁止整树盲拷贝
 - 禁止导入 proprietary blob
@@ -39,7 +36,7 @@
 - 行为变化时更新文档
 - 要求 CI 证据
 - 保持 `CHANGELOG.md` 简洁
-- 不要提交生成目录 `artifacts/`、`source/`、`target/` 和本地缓存
+- 遵循 `README-Zh-CN.md` 中的仓库清洁约定
 
 ## 安全
 

@@ -45,7 +45,7 @@ Run **`ROM-Aligned-Umi-Port.yml`** workflow, then inspect:
 - `.ruff_cache/` and `__pycache__/` are local tool caches
 - Keep those paths untracked so the repo stays reviewable and clean
 - `Porting/OfficialRomBaseline/` stores ROM baseline metadata plus compact validation images intended for repo-side checks
-- See `Porting/README.md` for document order and `Tools/Porting/README.md` for validation entry points
+- See `Porting-Plan.md` for the execution baseline, `Porting/README.md` for document order, and `Tools/Porting/README.md` for validation entry points
 
 ## Reference Sources
 

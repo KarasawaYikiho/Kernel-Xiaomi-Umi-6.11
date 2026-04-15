@@ -47,7 +47,7 @@ Xiaomi 10 (`umi`) 内核迁移编排仓库。CI 驱动从 SO-TS 4.19 迁移到 5
 - `.ruff_cache/` 与 `__pycache__/` 是本地工具缓存
 - 这些路径应保持未跟踪状态，避免污染提交记录
 - `Porting/OfficialRomBaseline/` 用于存放可检入的 ROM 基线元数据和小体积校验镜像，供校验流程使用
-- 文档阅读顺序见 `Porting/README.md`，本地校验入口见 `Tools/Porting/README.md`
+- 执行基线见 `Porting-Plan.md`，文档阅读顺序见 `Porting/README.md`，本地校验入口见 `Tools/Porting/README.md`
 
 ## 参考源
 
