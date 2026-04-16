@@ -17,8 +17,8 @@ PHASE2_REQUIRED = [
 
 OPTIONAL = [
     "dtb-miss-analysis.txt",
-    "phase2-umi-focused-package.zip",
-    "AnyKernel3-umi-candidate.zip",
+    "phase2-device-package.zip",
+    "AnyKernel3-candidate.zip",
     "anykernel-validate.txt",
     "bootimg-info.txt",
     "bootimg-build.txt",

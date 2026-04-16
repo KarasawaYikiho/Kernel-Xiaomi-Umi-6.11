@@ -1,68 +1,30 @@
-name: ROM-Aligned UMI Port (SO-TS -> 6+)
+name: ROM-Aligned SM8250 Port (SO-TS -> 6+)
 
 concurrency:
-  group: rom-aligned-umi-${{ github.ref }}
+  group: rom-aligned-sm8250-${{ github.ref }}
   cancel-in-progress: true
 
 on:
   workflow_dispatch:
     inputs:
-      source_repo:
-        description: "4.19 source repo"
-        required: true
-        default: "https://github.com/SO-TS/android_kernel_xiaomi_sm8250.git"
-      source_branch:
-        description: "4.19 source branch"
-        required: true
-        default: "android16-aptusitu"
-      target_repo:
-        description: "6+ target repo"
-        required: true
-        default: "https://github.com/yefxx/xiaomi-umi-linux-kernel.git"
-      target_branch:
-        description: "6+ target branch"
-        required: true
-        default: "master"
       device:
         description: "device codename"
         required: true
         default: "umi"
-      bootimg_required_bytes:
-        description: "target final boot.img size in bytes (defaults to ROM baseline when unset)"
-        required: false
-        default: "134217728"
-      official_rom_zip:
-        description: "optional local path to the official UMI ROM zip used as alignment baseline"
-        required: false
-        default: ""
-      official_rom_dir:
-        description: "optional local path to an extracted official UMI ROM directory used as alignment baseline"
-        required: false
-        default: ""
-      official_bootimg_path:
-        description: "optional local path to the official stock boot.img used as the primary boot baseline"
-        required: false
-        default: ""
-      bootimg_ramdisk_path:
-        description: "optional local path to ramdisk.cpio.gz (or a zip containing ramdisk payload) for release bootimg build"
-        required: false
-        default: ""
-      bootimg_prebuilt_path:
-        description: "optional local path to a prebuilt boot.img (or a zip containing boot.img) when ramdisk is unavailable"
-        required: false
-        default: ""
 
 jobs:
   port-and-build:
     runs-on: ubuntu-24.04
     timeout-minutes: 90
     env:
-      BOOTIMG_REQUIRED_BYTES: ${{ github.event.inputs.bootimg_required_bytes || '134217728' }}
-      OFFICIAL_ROM_ZIP: ${{ github.event.inputs.official_rom_zip || '' }}
-      OFFICIAL_ROM_DIR: ${{ github.event.inputs.official_rom_dir || '' }}
-      OFFICIAL_BOOTIMG_PATH: ${{ github.event.inputs.official_bootimg_path || '' }}
-      BOOTIMG_RAMDISK_PATH: ${{ github.event.inputs.bootimg_ramdisk_path || '' }}
-      BOOTIMG_PREBUILT_PATH: ${{ github.event.inputs.bootimg_prebuilt_path || '' }}
+      DEVICE: ${{ github.event.inputs.device || 'umi' }}
+      SOURCE_REPO: https://github.com/SO-TS/android_kernel_xiaomi_sm8250.git
+      SOURCE_BRANCH: android16-aptusitu
+      TARGET_REPO: https://github.com/yefxx/xiaomi-umi-linux-kernel.git
+      TARGET_BRANCH: master
+      OFFICIAL_BOOTIMG_PATH: ""
+      BOOTIMG_RAMDISK_PATH: ""
+      BOOTIMG_PREBUILT_PATH: ""
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       PATH: /home/runner/.local/bin:/usr/local/bin:/usr/bin:/bin
     steps:
@@ -83,10 +45,10 @@ jobs:
         run: |
           chmod +x Tools/Porting/PreparePhase2Sources.sh
           ./Tools/Porting/PreparePhase2Sources.sh \
-            "${{ github.event.inputs.source_repo }}" \
-            "${{ github.event.inputs.source_branch }}" \
-            "${{ github.event.inputs.target_repo }}" \
-            "${{ github.event.inputs.target_branch }}"
+            "$SOURCE_REPO" \
+            "$SOURCE_BRANCH" \
+            "$TARGET_REPO" \
+            "$TARGET_BRANCH"
 
       - name: Check target kernel major
         run: |
@@ -111,7 +73,7 @@ jobs:
           chmod +x Tools/Porting/RunPhase2Build.sh
           ./Tools/Porting/RunPhase2Build.sh "${{ github.event.inputs.device }}"
 
-      - name: Collect artifacts + umi-focused package
+      - name: Collect artifacts + device package
         if: always()
         run: |
           chmod +x Tools/Porting/CollectPhase2Artifacts.sh
@@ -205,10 +167,10 @@ jobs:
             "${{ github.sha }}" \
             "${{ github.ref }}" \
             "${{ github.event.inputs.device }}" \
-            "${{ github.event.inputs.source_repo }}" \
-            "${{ github.event.inputs.source_branch }}" \
-            "${{ github.event.inputs.target_repo }}" \
-            "${{ github.event.inputs.target_branch }}"
+            "$SOURCE_REPO" \
+            "$SOURCE_BRANCH" \
+            "$TARGET_REPO" \
+            "$TARGET_BRANCH"
 
       - name: Run postprocess suite
         if: always()
@@ -220,5 +182,5 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: rom-aligned-umi-${{ github.run_number }}
+          name: rom-aligned-${{ env.DEVICE }}-${{ github.run_number }}
           path: artifacts/

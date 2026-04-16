@@ -1,16 +1,8 @@
-name: Build Xiaomi 10 (umi) Kernel (Reference-style)
+name: Build SM8250 Kernel (Reference-style)
 
 on:
   workflow_dispatch:
     inputs:
-      kernel_repo:
-        description: "Kernel source repo URL (GitHub)"
-        required: true
-        default: "https://github.com/SO-TS/android_kernel_xiaomi_sm8250.git"
-      kernel_branch:
-        description: "Kernel branch"
-        required: true
-        default: "android16-aptusitu"
       device:
         description: "Target Device Codename"
         required: true
@@ -40,6 +32,8 @@ jobs:
   build:
     runs-on: ubuntu-24.04
     env:
+      KERNEL_REPO: https://github.com/SO-TS/android_kernel_xiaomi_sm8250.git
+      KERNEL_BRANCH: android16-aptusitu
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     permissions:
       contents: read
@@ -79,7 +73,7 @@ jobs:
 
       - name: Clone kernel source
         run: |
-          git clone --depth=1 --branch "${{ github.event.inputs.kernel_branch }}" "${{ github.event.inputs.kernel_repo }}" kernel
+          git clone --depth=1 --branch "$KERNEL_BRANCH" "$KERNEL_REPO" kernel
 
       - name: Build kernel
         working-directory: kernel

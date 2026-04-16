@@ -1,6 +1,6 @@
 # Porting Docs
 
-Planning and baseline analysis for UMI porting.
+Planning and baseline analysis for Xiaomi SM8250-family porting, with `umi` kept as the current reference baseline.
 
 ## Files
 

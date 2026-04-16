@@ -2,6 +2,8 @@
 
 Automation scripts for `ROM-Aligned-Umi-Port.yml`.
 
+The workflow auto-fills repository URLs, default branches, local ROM paths, and boot image size baselines in code. Operators should not need to type source/target repo links, branch baselines, boot size, or local boot baseline paths into the workflow UI.
+
 ## Pipeline Order
 
 1. `InstallCiDeps.sh` — Install CI dependencies
@@ -55,6 +57,8 @@ Refreshes:
 - `compileall` may refresh local `__pycache__/` entries, which are expected to stay untracked.
 - Keep oversized stock `boot.img` files out of git. Pin their size/hash in `Porting/OfficialRomBaseline/Manifest.json` and `BootImageBaseline.env`, then point workflows at local ROM inputs or local boot image paths when needed.
 - `PrepareReleaseBootimg.sh` now avoids network fallback for boot payloads and resolves `mkbootimg` from the local toolchain or the cloned source/target trees.
+- `MaterializeOfficialBootimg.py` reconstructs the tracked split baseline from `Porting/OfficialRomBaseline/boot.img.parts/` when Action cannot access a local ROM directory.
 - `BuildAnykernelCandidate.sh` now prefers the checked-in `Tools/Porting/AnyKernel3Template/` and no longer needs to clone AnyKernel3 just to produce a candidate zip.
 - For local runs, prefer `OFFICIAL_ROM_DIR=D:\GIT\MIUI_UMI` so the extracted ROM directory supplies `boot.img`, `dtbo.img`, and `vbmeta*.img` without committing large binaries.
+- `RefreshOfficialBootimgParts.ps1` regenerates the tracked `boot.img.parts/` chunks from a local stock image when maintainers need to update the baseline.
 - `ValidateBootImage.py` now treats official boot reference binding as a hard gate: format, size, header version, and trusted source metadata must all line up before `flash_ready=yes`.

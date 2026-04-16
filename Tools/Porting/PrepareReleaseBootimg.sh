@@ -25,6 +25,7 @@ official_rom_dir="${OFFICIAL_ROM_DIR:-$DEFAULT_OFFICIAL_ROM_DIR}"
 python_cmd=""
 rom_source_used=""
 rom_baseline_bootimg_path=""
+materialized_bootimg_path=""
 
 source "Tools/Porting/Common.sh"
 
@@ -233,6 +234,7 @@ extract_rom_support_images() {
     fi
     return 0
   fi
+  is_zip_file "$rom_ref" || return 0
   extract_named_from_zip "$rom_ref" "firmware-update/dtbo.img" "$ART/dtbo.img" "$tmp_dtbo" || true
   extract_named_from_zip "$rom_ref" "firmware-update/vbmeta.img" "$ART/vbmeta.img" "$tmp_vbmeta" || true
   extract_named_from_zip "$rom_ref" "firmware-update/vbmeta_system.img" "$ART/vbmeta_system.img" "$tmp_vbmeta_system" || true
@@ -350,8 +352,8 @@ if [[ -n "$ramdisk_path" && -f "$ramdisk_path" ]] && is_zip_file "$ramdisk_path"
 fi
 
 # dtb (optional for newer header versions but preferred)
-if [[ -z "$dtb_path" && -s "$ART/umi_primary_dtb_paths.txt" ]]; then
-  cand="$(head -n1 "$ART/umi_primary_dtb_paths.txt" || true)"
+if [[ -z "$dtb_path" && -s "$ART/primary_dtb_paths.txt" ]]; then
+  cand="$(head -n1 "$ART/primary_dtb_paths.txt" || true)"
   [[ -f "$cand" ]] && dtb_path="$cand"
 fi
 
@@ -379,6 +381,14 @@ baseline_base="$(read_baseline_env_value BOOTIMG_BASE 2>/dev/null || true)"
 baseline_pagesize="$(read_baseline_env_value BOOTIMG_PAGESIZE 2>/dev/null || true)"
 rom_baseline_bootimg_path="$(read_baseline_env_value ROM_BOOTIMG_PATH 2>/dev/null || true)"
 rom_baseline_bootimg_path="$(normalize_input_path "$rom_baseline_bootimg_path")"
+
+if [[ -z "$rom_baseline_bootimg_path" && -n "$python_cmd" && -f Tools/Porting/MaterializeOfficialBootimg.py ]]; then
+  materialized_bootimg_path="$($python_cmd Tools/Porting/MaterializeOfficialBootimg.py 2>/dev/null || true)"
+  materialized_bootimg_path="$(normalize_input_path "$materialized_bootimg_path")"
+  if [[ -n "$materialized_bootimg_path" && -f "$materialized_bootimg_path" ]]; then
+    rom_baseline_bootimg_path="$materialized_bootimg_path"
+  fi
+fi
 
 if [[ -z "$rom_source_used" && -n "$rom_baseline_bootimg_path" && -f "$rom_baseline_bootimg_path" ]]; then
   rom_source_used="$rom_baseline_bootimg_path"

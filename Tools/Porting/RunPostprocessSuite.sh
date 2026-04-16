@@ -20,7 +20,7 @@ if [[ ! -f artifacts/run-meta.txt ]]; then
     echo "run_number=local"
     echo "sha=${git_sha}"
     echo "ref=${git_ref}"
-    echo "device=umi"
+    echo "device=${DEVICE:-unknown}"
     echo "source_repo=local"
     echo "source_branch="
     echo "target_repo=local"

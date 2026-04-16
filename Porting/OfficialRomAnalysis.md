@@ -180,4 +180,4 @@ set_progress(1.000000);
 1. Treat this package as baseline evidence only; do not directly import proprietary blobs into the repository.
 2. Keep using extracted metadata + partition ops + hash evidence for reproducibility and regression tracking.
 3. Compare boot/dtbo/vbmeta hashes against CI-generated artifacts to validate release-chain consistency.
-4. Continue kernel-side integration via open-source references; use the local official ROM package/directory as validation target, not code donor.
+4. Continue kernel-side integration via open-source references; use the official ROM package, extracted directory, or repo baseline as validation target, not code donor.

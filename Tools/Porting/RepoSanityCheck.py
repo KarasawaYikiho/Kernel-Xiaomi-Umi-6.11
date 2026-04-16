@@ -15,6 +15,9 @@ REQUIRED_IGNORES = (
     "artifacts/",
     "source/",
     "target/",
+    "source.extract/",
+    "target.extract/",
+    "source.zip",
     ".ruff_cache/",
     "__pycache__/",
 )
@@ -22,7 +25,10 @@ TRACKED_GENERATED_PREFIXES = (
     "artifacts/",
     "source/",
     "target/",
+    "source.extract/",
+    "target.extract/",
 )
+TRACKED_GENERATED_FILES = ("source.zip",)
 TRACKED_GENERATED_SUFFIXES = (".pyc",)
 
 
@@ -118,6 +124,9 @@ def check_tracked_generated_content() -> list[str]:
         normalized = path.replace("\\", "/")
         if normalized.startswith(TRACKED_GENERATED_PREFIXES):
             errs.append(f"tracked generated path: {normalized}")
+            continue
+        if normalized in TRACKED_GENERATED_FILES:
+            errs.append(f"tracked generated file: {normalized}")
             continue
         if "/__pycache__/" in f"/{normalized}" or normalized.endswith("/__pycache__"):
             errs.append(f"tracked cache path: {normalized}")

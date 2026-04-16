@@ -16,7 +16,7 @@ def main() -> int:
     ART.mkdir(parents=True, exist_ok=True)
 
     summary = parse_kv(ART / "summary.txt")
-    pack = parse_kv(ART / "umi_bundle" / "pack-info.txt")
+    pack = parse_kv(ART / "device_bundle" / "pack-info.txt")
     flash = parse_kv(ART / "flash-readiness.txt")
     dtb = parse_kv(ART / "dtb-postcheck.txt")
     anyk = parse_kv(ART / "anykernel-info.txt")
@@ -64,7 +64,7 @@ def main() -> int:
         f"dts_copied={summary.get('dts_copied', '0')}",
         f"dts_only_copied={summary.get('dts_only_copied', '0')}",
         f"dtsi_only_copied={summary.get('dtsi_only_copied', '0')}",
-        f"umi_bundle_xiaomi_dtb_count={pack.get('umi_bundle_xiaomi_dtb_count', '0')}",
+        f"bundle_xiaomi_dtb_count={pack.get('bundle_xiaomi_dtb_count', '0')}",
         f"flash_status={flash.get('status', 'unknown')}",
         f"flash_reason={flash.get('reason', 'n/a')}",
         f"release_status={flash.get('release_status', 'unknown')}",

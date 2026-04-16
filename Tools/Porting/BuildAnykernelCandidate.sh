@@ -2,6 +2,7 @@
 set -euo pipefail
 
 mkdir -p artifacts
+DEVICE="${DEVICE:-umi}"
 anykernel_ok=no
 anykernel_has_imagegz=no
 anykernel_has_dtb=no
@@ -38,9 +39,9 @@ if [ -n "$imagegz_path" ]; then
       cp -Rv "$template_dir"/. "$work_dir"/ || true
       cp -v "$imagegz_path" "$work_dir/Image.gz" || true
 
-      # Optional: include first matched umi-related dtb as dtb
-      if [ -s artifacts/umi_primary_dtb_paths.txt ]; then
-        first_dtb="$(head -n1 artifacts/umi_primary_dtb_paths.txt)"
+      # Optional: include first matched primary dtb as dtb
+      if [ -s artifacts/primary_dtb_paths.txt ]; then
+        first_dtb="$(head -n1 artifacts/primary_dtb_paths.txt)"
         if [ -f "$first_dtb" ]; then
           cp -v "$first_dtb" "$work_dir/dtb" || true
           anykernel_has_dtb=yes
@@ -49,9 +50,9 @@ if [ -n "$imagegz_path" ]; then
       fi
 
       # Best-effort device hint
-      sed -i 's/^  echo "device.name1=.*/  echo "device.name1=umi"/' "$work_dir/anykernel.sh" || true
+      sed -i "s/^  echo \"device.name1=.*/  echo \"device.name1=$DEVICE\"/" "$work_dir/anykernel.sh" || true
 
-      if (cd "$work_dir" && zip -r9 ../AnyKernel3-umi-candidate.zip .); then
+      if (cd "$work_dir" && zip -r9 ../AnyKernel3-candidate.zip .); then
         anykernel_ok=yes
         anykernel_reason=ok
       fi

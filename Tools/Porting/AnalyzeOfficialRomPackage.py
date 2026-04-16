@@ -10,6 +10,8 @@ from pathlib import Path
 
 DEFAULT_ROM_ZIP = Path(r"D:\GIT\MIUI_UMI_OS1.0.5.0.TJBCNXM_d01651ed86_13.0.zip")
 DEFAULT_ROM_DIR = Path(r"D:\GIT\MIUI_UMI")
+BASELINE_DIR = Path("Porting/OfficialRomBaseline")
+BASELINE_MANIFEST = BASELINE_DIR / "Manifest.json"
 OUT_MD = Path("Porting/OfficialRomAnalysis.md")
 OUT_BASELINE = Path("artifacts/official-rom-baseline.json")
 
@@ -77,6 +79,26 @@ def write_missing_report(expected_zip: Path, expected_dir: Path) -> None:
     )
 
 
+def load_manifest() -> dict:
+    if not BASELINE_MANIFEST.exists():
+        return {}
+    try:
+        return json.loads(
+            BASELINE_MANIFEST.read_text(encoding="utf-8", errors="ignore")
+        )
+    except Exception:
+        return {}
+
+
+def materialize_split_bootimg(parts_dir: Path) -> bytes:
+    if not parts_dir.exists() or not parts_dir.is_dir():
+        return b""
+    chunks = sorted(p for p in parts_dir.iterdir() if p.is_file())
+    if not chunks:
+        return b""
+    return b"".join(chunk.read_bytes() for chunk in chunks)
+
+
 def resolve_rom_source() -> tuple[Path, str]:
     rom_zip = Path(os.environ.get("OFFICIAL_ROM_ZIP", "") or DEFAULT_ROM_ZIP)
     rom_dir = Path(os.environ.get("OFFICIAL_ROM_DIR", "") or DEFAULT_ROM_DIR)
@@ -84,6 +106,16 @@ def resolve_rom_source() -> tuple[Path, str]:
         return rom_dir, "directory"
     if rom_zip.exists() and rom_zip.is_file():
         return rom_zip, "zip"
+    manifest = load_manifest()
+    parts_dir = Path(
+        str(
+            manifest.get("bootimg", {})
+            .get("parts", {})
+            .get("dir", BASELINE_DIR / "boot.img.parts")
+        )
+    )
+    if parts_dir.exists() and parts_dir.is_dir():
+        return parts_dir, "repo-baseline"
     return rom_dir if os.environ.get("OFFICIAL_ROM_DIR") else rom_zip, "missing"
 
 
@@ -165,6 +197,39 @@ def collect_from_zip(path: Path) -> dict[str, object]:
     }
 
 
+def collect_from_repo_baseline(parts_dir: Path) -> dict[str, object]:
+    manifest = load_manifest()
+    boot_data = materialize_split_bootimg(parts_dir)
+
+    def read_bytes(name: str) -> bytes:
+        if name == "boot.img":
+            return boot_data
+        path = BASELINE_DIR / name.split("/", 1)[-1]
+        if not path.exists():
+            return b""
+        return path.read_bytes()
+
+    names = [
+        "boot.img",
+        "firmware-update/dtbo.img",
+        "firmware-update/vbmeta.img",
+        "firmware-update/vbmeta_system.img",
+    ]
+    return {
+        "source": parts_dir,
+        "source_kind": "repo-baseline",
+        "source_size": 0,
+        "source_sha256": str(manifest.get("bootimg", {}).get("sha256", "")),
+        "names": names,
+        "top_dirs": ["boot.img", "firmware-update"],
+        "metadata_txt": "",
+        "dyn_ops_txt": "",
+        "updater_txt": "",
+        "boot_data": boot_data,
+        "read_bytes": read_bytes,
+    }
+
+
 def main() -> int:
     OUT_MD.parent.mkdir(parents=True, exist_ok=True)
 
@@ -174,11 +239,12 @@ def main() -> int:
         print(f"Wrote {OUT_MD} (source package missing)")
         return 0
 
-    data = (
-        collect_from_directory(source)
-        if source_kind == "directory"
-        else collect_from_zip(source)
-    )
+    if source_kind == "directory":
+        data = collect_from_directory(source)
+    elif source_kind == "zip":
+        data = collect_from_zip(source)
+    else:
+        data = collect_from_repo_baseline(source)
     names = data["names"]
     top_dirs = data["top_dirs"]
     metadata_txt = data["metadata_txt"]
@@ -254,7 +320,7 @@ def main() -> int:
 
     lines.append("## Key Image/Data Entries")
     for k in key_files:
-        blob = read_bytes(k)
+        blob = boot_data if k == "boot.img" else read_bytes(k)
         if blob:
             lines.append(f"- `{k}`: size=`{len(blob)}` sha256=`{sha256_bytes(blob)}`")
         else:
@@ -277,7 +343,7 @@ def main() -> int:
         "3. Compare boot/dtbo/vbmeta hashes against CI-generated artifacts to validate release-chain consistency."
     )
     lines.append(
-        "4. Continue kernel-side integration via open-source references; use the local official ROM package/directory as validation target, not code donor."
+        "4. Continue kernel-side integration via open-source references; use the official ROM package, extracted directory, or repo baseline as validation target, not code donor."
     )
 
     baseline = {
