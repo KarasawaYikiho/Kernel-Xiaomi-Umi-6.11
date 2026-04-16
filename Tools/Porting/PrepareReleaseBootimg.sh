@@ -8,8 +8,8 @@ set -euo pipefail
 ART=artifacts
 mkdir -p "$ART"
 OUT="$ART/bootimg-build.txt"
-DEFAULT_OFFICIAL_ROM_ZIP='D:\GIT\MIUI_UMI_OS1.0.5.0.TJBCNXM_d01651ed86_13.0.zip'
-DEFAULT_OFFICIAL_ROM_DIR='D:\GIT\MIUI_UMI'
+DEFAULT_OFFICIAL_ROM_ZIP=''
+DEFAULT_OFFICIAL_ROM_DIR=''
 ROM_ANALYSIS='Porting/OfficialRomAnalysis.md'
 ROM_BASELINE_ENV='Porting/OfficialRomBaseline/BootImageBaseline.env'
 ROM_BASELINE_DIR='Porting/OfficialRomBaseline'
@@ -19,15 +19,46 @@ ramdisk_path="${BOOTIMG_RAMDISK_PATH:-}"
 prebuilt_path="${BOOTIMG_PREBUILT_PATH:-}"
 dtb_path="${BOOTIMG_DTB_PATH:-}"
 mkbootimg_cmd=""
-official_rom_zip="${OFFICIAL_ROM_ZIP:-$DEFAULT_OFFICIAL_ROM_ZIP}"
+official_rom_zip="${OFFICIAL_ROM_ZIP:-}"
 official_bootimg_path="${OFFICIAL_BOOTIMG_PATH:-}"
-official_rom_dir="${OFFICIAL_ROM_DIR:-$DEFAULT_OFFICIAL_ROM_DIR}"
+official_rom_dir="${OFFICIAL_ROM_DIR:-}"
 python_cmd=""
 rom_source_used=""
 rom_baseline_bootimg_path=""
 materialized_bootimg_path=""
 
 source "Tools/Porting/Common.sh"
+
+load_port_defaults() {
+  local config_lines
+  config_lines="$(python_cmd="$(resolve_python_cmd || true)"; if [[ -n "$python_cmd" ]]; then "$python_cmd" Tools/Porting/ExportPortConfig.py 2>/dev/null; fi)"
+  [[ -n "$config_lines" ]] || return 0
+  while IFS='=' read -r key value; do
+    case "$key" in
+      OFFICIAL_ROM_DIR_DEFAULT)
+        [[ -n "$value" ]] && DEFAULT_OFFICIAL_ROM_DIR="$value"
+        ;;
+      OFFICIAL_ROM_ZIP_DEFAULT)
+        [[ -n "$value" ]] && DEFAULT_OFFICIAL_ROM_ZIP="$value"
+        ;;
+      OFFICIAL_ROM_BASELINE_DIR)
+        [[ -n "$value" ]] && ROM_BASELINE_DIR="$value"
+        ;;
+      OFFICIAL_ROM_ENV)
+        [[ -n "$value" ]] && ROM_BASELINE_ENV="$value"
+        ;;
+    esac
+  done <<< "$config_lines"
+}
+
+load_port_defaults
+
+if [[ -z "$official_rom_zip" ]]; then
+  official_rom_zip="$DEFAULT_OFFICIAL_ROM_ZIP"
+fi
+if [[ -z "$official_rom_dir" ]]; then
+  official_rom_dir="$DEFAULT_OFFICIAL_ROM_DIR"
+fi
 
 normalize_input_path() {
   local value="$1"

@@ -1,8 +1,22 @@
 param(
-    [string]$OfficialBootimg = 'D:\GIT\MIUI_UMI\boot.img'
+    [string]$OfficialBootimg = ''
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ([string]::IsNullOrWhiteSpace($OfficialBootimg)) {
+    $configLines = python "Tools/Porting/ExportPortConfig.py"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Unable to load port config defaults"
+    }
+
+    foreach ($line in $configLines) {
+        if ($line -like 'OFFICIAL_BOOTIMG_DEFAULT=*') {
+            $OfficialBootimg = $line.Substring('OFFICIAL_BOOTIMG_DEFAULT='.Length)
+            break
+        }
+    }
+}
 
 if (-not (Test-Path -LiteralPath $OfficialBootimg -PathType Leaf)) {
     throw "Official boot image not found: $OfficialBootimg"
@@ -14,4 +28,4 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "Refreshed split boot baseline from: $OfficialBootimg"
-Write-Host "Review: Porting/OfficialRomBaseline/boot.img.parts and Manifest.json"
+Write-Host "Review: Porting/OfficialRomBaseline/BootImgParts and Manifest.json"

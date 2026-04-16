@@ -27,15 +27,12 @@ Run **`ROM-Aligned-Umi-Port.yml`** workflow for the current reference device bas
 |-------|---------|-------------|
 | `device` | `umi` | Device codename; current default baseline remains `umi` |
 
-Source locations, default branches, and boot image size are no longer workflow inputs. The workflow auto-fills them in code:
+Source locations, default branches, toolchain source, and boot image baseline paths are no longer workflow inputs. The workflow auto-fills them in code:
 
-- Source repo: `https://github.com/SO-TS/android_kernel_xiaomi_sm8250.git`
-- Source branch: `android16-aptusitu`
-- Target repo: `https://github.com/yefxx/xiaomi-umi-linux-kernel.git`
-- Target branch: `master`
+- Source repo, target repo, default branches, toolchain download source, and ROM defaults are centralized in `Porting/Sm8250PortConfig.json`
 - Local ROM dir for maintainer runs: `D:\GIT\MIUI_UMI`
 - Local ROM zip fallback for maintainer runs: `D:\GIT\MIUI_UMI_OS1.0.5.0.TJBCNXM_d01651ed86_13.0.zip`
-- GitHub Action fallback: tracked `Porting/OfficialRomBaseline/boot.img.parts/` chunks auto-reassembled in CI
+- GitHub Action fallback: tracked `Porting/OfficialRomBaseline/BootImgParts/` chunks auto-reassembled in CI
 - `BOOTIMG_REQUIRED_BYTES`: derived from the active ROM baseline first, then falls back only when baseline metadata is unavailable
 
 ## Workflows
@@ -65,6 +62,7 @@ It defaults to `D:\GIT\MIUI_UMI` and keeps the official `boot.img` out of git.
 - SO-TS: `android_kernel_xiaomi_sm8250` (4.19)
 - 5+ baseline: `yefxx/xiaomi-umi-linux-kernel`
 - Driver refs: `UtsavBalar1231/*`
+- Unified config source: `Porting/Sm8250PortConfig.json`
 
 ## License
 

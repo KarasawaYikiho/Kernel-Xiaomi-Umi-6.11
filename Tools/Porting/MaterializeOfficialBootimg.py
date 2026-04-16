@@ -10,7 +10,7 @@ ART = Path("artifacts")
 BASELINE_DIR = Path("Porting/OfficialRomBaseline")
 MANIFEST_PATH = BASELINE_DIR / "Manifest.json"
 ENV_PATH = BASELINE_DIR / "BootImageBaseline.env"
-DEFAULT_PARTS_DIR = BASELINE_DIR / "boot.img.parts"
+DEFAULT_PARTS_DIR = BASELINE_DIR / "BootImgParts"
 DEFAULT_OUTPUT = ART / "official-rom-baseline-boot.img"
 
 
@@ -74,10 +74,25 @@ def locate_boot_path(env_kv: dict[str, str]) -> Path | None:
     return None
 
 
-def materialize_from_parts(parts_dir: Path, out_path: Path) -> tuple[Path | None, str]:
+def list_part_files(parts_dir: Path, manifest: dict) -> list[Path]:
+    part_meta = (
+        manifest.get("bootimg", {}).get("parts", {})
+        if isinstance(manifest, dict)
+        else {}
+    )
+    prefix = str(part_meta.get("filename_prefix", "")).strip()
+    parts = [p for p in parts_dir.iterdir() if p.is_file()]
+    if prefix:
+        parts = [p for p in parts if p.name.startswith(prefix)]
+    return sorted(parts)
+
+
+def materialize_from_parts(
+    parts_dir: Path, out_path: Path, manifest: dict
+) -> tuple[Path | None, str]:
     if not parts_dir.exists() or not parts_dir.is_dir():
         return None, f"parts-dir-missing:{parts_dir}"
-    parts = sorted(p for p in parts_dir.iterdir() if p.is_file())
+    parts = list_part_files(parts_dir, manifest)
     if not parts:
         return None, f"parts-missing:{parts_dir}"
 
@@ -106,7 +121,7 @@ def main() -> int:
 
     parts_dir = locate_parts_dir(env_kv, manifest)
     out_path = DEFAULT_OUTPUT
-    materialized, reason = materialize_from_parts(parts_dir, out_path)
+    materialized, reason = materialize_from_parts(parts_dir, out_path, manifest)
     if not materialized:
         print(reason)
         return 1

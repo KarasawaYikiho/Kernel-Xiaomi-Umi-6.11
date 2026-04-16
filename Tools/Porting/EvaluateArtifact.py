@@ -21,11 +21,6 @@ def is_candidate_hint(value: str) -> bool:
 
 def main() -> int:
     ART.mkdir(parents=True, exist_ok=True)
-    if not PACK_INFO.exists():
-        OUT.write_text("status=unknown\nreason=pack-info-missing\n", encoding="utf-8")
-        print("pack-info missing")
-        return 0
-
     pack = parse_kv(PACK_INFO)
     dtb = parse_kv(ART / "dtb-postcheck.txt")
     anykernel = parse_kv(ART / "anykernel-info.txt")
@@ -49,7 +44,10 @@ def main() -> int:
 
     status = "not_ready"
     reason = "insufficient-xiaomi-dtb"
-    if xiaomi_dtb_count >= 1 and is_candidate_hint(hint):
+    if not PACK_INFO.exists():
+        status = "unknown"
+        reason = "pack-info-missing"
+    elif xiaomi_dtb_count >= 1 and is_candidate_hint(hint):
         if not anykernel_ok:
             reason = "candidate-missing-anykernel"
         elif not anykernel_validate_ok:

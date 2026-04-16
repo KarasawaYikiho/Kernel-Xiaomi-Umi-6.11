@@ -8,12 +8,18 @@ import struct
 import zipfile
 from pathlib import Path
 
-DEFAULT_ROM_ZIP = Path(r"D:\GIT\MIUI_UMI_OS1.0.5.0.TJBCNXM_d01651ed86_13.0.zip")
-DEFAULT_ROM_DIR = Path(r"D:\GIT\MIUI_UMI")
+from PortConfig import get_nested, load_port_config
+
 BASELINE_DIR = Path("Porting/OfficialRomBaseline")
 BASELINE_MANIFEST = BASELINE_DIR / "Manifest.json"
 OUT_MD = Path("Porting/OfficialRomAnalysis.md")
 OUT_BASELINE = Path("artifacts/official-rom-baseline.json")
+
+
+def configured_path(*keys: str) -> Path | None:
+    value = get_nested(load_port_config(), *keys)
+    value = value.strip()
+    return Path(value) if value else None
 
 
 def sha256_bytes(data: bytes) -> str:
@@ -48,14 +54,14 @@ def boot_header_summary(boot: bytes) -> list[str]:
     return lines
 
 
-def write_missing_report(expected_zip: Path, expected_dir: Path) -> None:
+def write_missing_report(expected_zip: Path | None, expected_dir: Path | None) -> None:
     lines = [
         "# Official ROM Package Analysis (UMI OS1.0.5.0.TJBCNXM)",
         "",
         "## Status",
         "- status: `missing_source_package`",
-        f"- expected_zip: `{expected_zip}`",
-        f"- expected_dir: `{expected_dir}`",
+        f"- expected_zip: `{expected_zip or ''}`",
+        f"- expected_dir: `{expected_dir or ''}`",
         "- note: local ROM package/directory not found in current environment; generated placeholder report for CI continuity.",
         "",
         "## Integration Recommendations",
@@ -69,8 +75,8 @@ def write_missing_report(expected_zip: Path, expected_dir: Path) -> None:
         json.dumps(
             {
                 "status": "missing_source_package",
-                "expected_zip": str(expected_zip),
-                "expected_dir": str(expected_dir),
+                "expected_zip": str(expected_zip or ""),
+                "expected_dir": str(expected_dir or ""),
             },
             indent=2,
         )
@@ -90,33 +96,55 @@ def load_manifest() -> dict:
         return {}
 
 
-def materialize_split_bootimg(parts_dir: Path) -> bytes:
+def list_part_files(parts_dir: Path, manifest: dict) -> list[Path]:
+    part_meta = (
+        manifest.get("bootimg", {}).get("parts", {})
+        if isinstance(manifest, dict)
+        else {}
+    )
+    prefix = str(part_meta.get("filename_prefix", "")).strip()
+    chunks = [p for p in parts_dir.iterdir() if p.is_file()]
+    if prefix:
+        chunks = [p for p in chunks if p.name.startswith(prefix)]
+    return sorted(chunks)
+
+
+def materialize_split_bootimg(parts_dir: Path, manifest: dict) -> bytes:
     if not parts_dir.exists() or not parts_dir.is_dir():
         return b""
-    chunks = sorted(p for p in parts_dir.iterdir() if p.is_file())
+    chunks = list_part_files(parts_dir, manifest)
     if not chunks:
         return b""
     return b"".join(chunk.read_bytes() for chunk in chunks)
 
 
-def resolve_rom_source() -> tuple[Path, str]:
-    rom_zip = Path(os.environ.get("OFFICIAL_ROM_ZIP", "") or DEFAULT_ROM_ZIP)
-    rom_dir = Path(os.environ.get("OFFICIAL_ROM_DIR", "") or DEFAULT_ROM_DIR)
-    if rom_dir.exists() and rom_dir.is_dir():
-        return rom_dir, "directory"
-    if rom_zip.exists() and rom_zip.is_file():
-        return rom_zip, "zip"
+def resolve_rom_source() -> tuple[Path, str, Path | None, Path | None]:
+    rom_zip = (
+        Path(os.environ["OFFICIAL_ROM_ZIP"])
+        if os.environ.get("OFFICIAL_ROM_ZIP")
+        else configured_path("official_rom", "default_zip")
+    )
+    rom_dir = (
+        Path(os.environ["OFFICIAL_ROM_DIR"])
+        if os.environ.get("OFFICIAL_ROM_DIR")
+        else configured_path("official_rom", "default_dir")
+    )
+    if rom_dir and rom_dir.exists() and rom_dir.is_dir():
+        return rom_dir, "directory", rom_zip, rom_dir
+    if rom_zip and rom_zip.exists() and rom_zip.is_file():
+        return rom_zip, "zip", rom_zip, rom_dir
     manifest = load_manifest()
     parts_dir = Path(
         str(
             manifest.get("bootimg", {})
             .get("parts", {})
-            .get("dir", BASELINE_DIR / "boot.img.parts")
+            .get("dir", BASELINE_DIR / "BootImgParts")
         )
     )
     if parts_dir.exists() and parts_dir.is_dir():
-        return parts_dir, "repo-baseline"
-    return rom_dir if os.environ.get("OFFICIAL_ROM_DIR") else rom_zip, "missing"
+        return parts_dir, "repo-baseline", rom_zip, rom_dir
+    missing_hint = rom_dir or rom_zip or parts_dir
+    return missing_hint, "missing", rom_zip, rom_dir
 
 
 def collect_from_directory(root: Path) -> dict[str, object]:
@@ -199,7 +227,7 @@ def collect_from_zip(path: Path) -> dict[str, object]:
 
 def collect_from_repo_baseline(parts_dir: Path) -> dict[str, object]:
     manifest = load_manifest()
-    boot_data = materialize_split_bootimg(parts_dir)
+    boot_data = materialize_split_bootimg(parts_dir, manifest)
 
     def read_bytes(name: str) -> bytes:
         if name == "boot.img":
@@ -233,9 +261,9 @@ def collect_from_repo_baseline(parts_dir: Path) -> dict[str, object]:
 def main() -> int:
     OUT_MD.parent.mkdir(parents=True, exist_ok=True)
 
-    source, source_kind = resolve_rom_source()
+    source, source_kind, expected_zip, expected_dir = resolve_rom_source()
     if source_kind == "missing":
-        write_missing_report(DEFAULT_ROM_ZIP, DEFAULT_ROM_DIR)
+        write_missing_report(expected_zip, expected_dir)
         print(f"Wrote {OUT_MD} (source package missing)")
         return 0
 

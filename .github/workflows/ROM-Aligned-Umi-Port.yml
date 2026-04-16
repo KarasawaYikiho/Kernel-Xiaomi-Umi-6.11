@@ -1,4 +1,4 @@
-name: ROM-Aligned SM8250 Port (SO-TS -> 6+)
+name: ROM-Aligned SM8250 Port (Reference Baseline)
 
 concurrency:
   group: rom-aligned-sm8250-${{ github.ref }}
@@ -18,10 +18,6 @@ jobs:
     timeout-minutes: 90
     env:
       DEVICE: ${{ github.event.inputs.device || 'umi' }}
-      SOURCE_REPO: https://github.com/SO-TS/android_kernel_xiaomi_sm8250.git
-      SOURCE_BRANCH: android16-aptusitu
-      TARGET_REPO: https://github.com/yefxx/xiaomi-umi-linux-kernel.git
-      TARGET_BRANCH: master
       OFFICIAL_BOOTIMG_PATH: ""
       BOOTIMG_RAMDISK_PATH: ""
       BOOTIMG_PREBUILT_PATH: ""
@@ -35,6 +31,14 @@ jobs:
         run: |
           chmod +x Tools/Porting/InstallCiDeps.sh
           ./Tools/Porting/InstallCiDeps.sh
+
+      - name: Load port config
+        run: |
+          python3 Tools/Porting/ExportPortConfig.py >> "$GITHUB_ENV"
+
+      - name: Validate device against SM8250 config
+        run: |
+          python3 Tools/Porting/ValidatePortDevice.py "$DEVICE"
 
       - name: Analyze official ROM package baseline
         if: always()

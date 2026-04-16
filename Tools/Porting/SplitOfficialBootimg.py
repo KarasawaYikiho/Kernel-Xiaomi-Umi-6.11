@@ -6,10 +6,20 @@ import hashlib
 import json
 from pathlib import Path
 
-DEFAULT_INPUT = Path(r"D:\GIT\MIUI_UMI\boot.img")
-DEFAULT_PARTS_DIR = Path("Porting/OfficialRomBaseline/boot.img.parts")
+from PortConfig import get_nested, load_port_config
+
+DEFAULT_PARTS_DIR = Path("Porting/OfficialRomBaseline/BootImgParts")
 DEFAULT_MANIFEST = Path("Porting/OfficialRomBaseline/Manifest.json")
 DEFAULT_CHUNK_SIZE = 8 * 1024 * 1024
+
+
+def default_input_path() -> Path:
+    config = load_port_config()
+    explicit = get_nested(config, "official_rom", "default_bootimg").strip()
+    if explicit:
+        return Path(explicit)
+    default_dir = get_nested(config, "official_rom", "default_dir").strip()
+    return Path(default_dir) / "boot.img" if default_dir else Path("boot.img")
 
 
 def sha256_file(path: Path) -> str:
@@ -36,6 +46,8 @@ def split_bootimg(
     parts_dir.mkdir(parents=True, exist_ok=True)
     for existing in parts_dir.glob("boot.img.part*"):
         existing.unlink()
+    for existing in parts_dir.glob("BootImgPart*.bin"):
+        existing.unlink()
 
     count = 0
     with input_path.open("rb") as src:
@@ -43,14 +55,14 @@ def split_bootimg(
             data = src.read(chunk_size)
             if not data:
                 break
-            (parts_dir / f"boot.img.part{count:04d}").write_bytes(data)
+            (parts_dir / f"BootImgPart{count:04d}.bin").write_bytes(data)
             count += 1
     return count, input_path.stat().st_size
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--input", default=str(DEFAULT_INPUT))
+    parser.add_argument("--input", default=str(default_input_path()))
     parser.add_argument("--parts-dir", default=str(DEFAULT_PARTS_DIR))
     parser.add_argument("--manifest", default=str(DEFAULT_MANIFEST))
     parser.add_argument("--chunk-size", type=int, default=DEFAULT_CHUNK_SIZE)
@@ -73,7 +85,7 @@ def main() -> int:
         "dir": parts_dir.as_posix(),
         "chunk_size": args.chunk_size,
         "count": part_count,
-        "filename_prefix": "boot.img.part",
+        "filename_prefix": "BootImgPart",
     }
     write_manifest(manifest_path, manifest)
 

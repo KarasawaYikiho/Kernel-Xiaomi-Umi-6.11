@@ -23,6 +23,8 @@ OPTIONAL = [
     "bootimg-info.txt",
     "bootimg-build.txt",
     "driver-integration-status.txt",
+    "plan-progress.txt",
+    "plan-progress.md",
     "decision-consistency.txt",
     "postprocess-status.txt",
     "action-validation-checklist.md",

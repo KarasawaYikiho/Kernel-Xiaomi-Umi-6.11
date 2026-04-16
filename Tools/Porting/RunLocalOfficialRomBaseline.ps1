@@ -1,8 +1,22 @@
 param(
-    [string]$OfficialRomDir = 'D:\GIT\MIUI_UMI'
+    [string]$OfficialRomDir = ''
 )
 
 $ErrorActionPreference = 'Stop'
+
+if ([string]::IsNullOrWhiteSpace($OfficialRomDir)) {
+    $configLines = python "Tools/Porting/ExportPortConfig.py"
+    if ($LASTEXITCODE -ne 0) {
+        throw "Unable to load port config defaults"
+    }
+
+    foreach ($line in $configLines) {
+        if ($line -like 'OFFICIAL_ROM_DIR_DEFAULT=*') {
+            $OfficialRomDir = $line.Substring('OFFICIAL_ROM_DIR_DEFAULT='.Length)
+            break
+        }
+    }
+}
 
 if (-not (Test-Path -LiteralPath $OfficialRomDir -PathType Container)) {
     throw "Official ROM directory not found: $OfficialRomDir"

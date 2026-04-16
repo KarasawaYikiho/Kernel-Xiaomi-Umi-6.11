@@ -10,7 +10,7 @@ The purpose of these files is to make ROM alignment reproducible inside CI witho
 - Do not treat these files as kernel source input.
 - Keep large proprietary payloads out of git unless there is a concrete need.
 - Prefer metadata, hashes, header hints, and compact validation inputs.
-- Keep firmware image filenames in their canonical Android lowercase form so script lookups and package-relative names stay aligned.
+- Keep shipped firmware image filenames in their canonical Android lowercase form so script lookups and package-relative names stay aligned. Split helper chunks follow repository naming rules instead.
 
 ## Files
 
@@ -22,7 +22,7 @@ The purpose of these files is to make ROM alignment reproducible inside CI witho
 
 `boot.img` is intentionally not checked into git because the stock image exceeds GitHub's file size limit. Its pinned size, hash, and header hints are stored in `Manifest.json` and `BootImageBaseline.env`, while local workflows can still consume a local ROM zip or extracted ROM directory.
 
-For GitHub Actions and other environments that cannot access local ROM directories, the official `boot.img` is stored in git as split chunks under `boot.img.parts/`. CI reconstructs it automatically via `Tools/Porting/MaterializeOfficialBootimg.py`.
+For GitHub Actions and other environments that cannot access local ROM directories, the official `boot.img` is stored in git as split chunks under `BootImgParts/`. CI reconstructs it automatically via `Tools/Porting/MaterializeOfficialBootimg.py`.
 
 When you need a stock boot baseline, prefer this order:
 
