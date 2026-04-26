@@ -1,10 +1,10 @@
 param(
-    [string]$OfficialBootimg = ''
+    [string]$OfficialBootImg = ''
 )
 
 $ErrorActionPreference = 'Stop'
 
-if ([string]::IsNullOrWhiteSpace($OfficialBootimg)) {
+if ([string]::IsNullOrWhiteSpace($OfficialBootImg)) {
     $configLines = python "Porting/Tools/ExportPortConfig.py"
     if ($LASTEXITCODE -ne 0) {
         throw "Unable to load port config defaults"
@@ -12,20 +12,20 @@ if ([string]::IsNullOrWhiteSpace($OfficialBootimg)) {
 
     foreach ($line in $configLines) {
         if ($line -like 'OFFICIAL_BOOTIMG_DEFAULT=*') {
-            $OfficialBootimg = $line.Substring('OFFICIAL_BOOTIMG_DEFAULT='.Length)
+            $OfficialBootImg = $line.Substring('OFFICIAL_BOOTIMG_DEFAULT='.Length)
             break
         }
     }
 }
 
-if (-not (Test-Path -LiteralPath $OfficialBootimg -PathType Leaf)) {
-    throw "Official boot image not found: $OfficialBootimg"
+if (-not (Test-Path -LiteralPath $OfficialBootImg -PathType Leaf)) {
+    throw "Official boot image not found: $OfficialBootImg"
 }
 
-python "Porting/Tools/SplitOfficialBootimg.py" --input "$OfficialBootimg"
+python "Porting/Tools/SplitOfficialBootImg.py" --input "$OfficialBootImg"
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-Write-Host "Refreshed split boot baseline from: $OfficialBootimg"
+Write-Host "Refreshed split boot baseline from: $OfficialBootImg"
 Write-Host "Review: Porting/OfficialRomBaseline/BootImgParts and Manifest.json"

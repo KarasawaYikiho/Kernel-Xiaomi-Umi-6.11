@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Usage:
-#   Collect_Phase2_Artifacts.sh <device>
+#   CollectPhase2Artifacts.sh <device>
 
 DEVICE="${1:-${DEVICE:-unknown}}"
 

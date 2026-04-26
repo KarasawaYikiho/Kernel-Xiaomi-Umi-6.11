@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Usage:
-#   Run_Phase2_Build.sh <device>
+#   RunPhase2Build.sh <device>
 
 DEVICE="${1:-${DEVICE:-umi}}"
 

@@ -64,38 +64,38 @@ jobs:
       - name: Normalize boot image size input
         shell: bash
         run: |
-          chmod +x Porting/Tools/NormalizeBootimgRequiredBytes.sh
-          ./Porting/Tools/NormalizeBootimgRequiredBytes.sh
+          chmod +x Porting/Tools/NormalizeBootImgRequiredBytes.sh
+          ./Porting/Tools/NormalizeBootImgRequiredBytes.sh
 
       - name: Apply Phase2 migration
         run: |
           chmod +x Porting/Tools/ApplyPhase2Migration.sh
-          ./Porting/Tools/ApplyPhase2Migration.sh "${{ github.event.inputs.device }}"
+          ./Porting/Tools/ApplyPhase2Migration.sh "$DEVICE"
 
       - name: Build target kernel (attempt)
         env:
           ARCH: arm64
         run: |
           chmod +x Porting/Tools/RunPhase2Build.sh
-          ./Porting/Tools/RunPhase2Build.sh "${{ github.event.inputs.device }}"
+          ./Porting/Tools/RunPhase2Build.sh "$DEVICE"
 
       - name: Collect artifacts + device package
         if: always()
         run: |
           chmod +x Porting/Tools/CollectPhase2Artifacts.sh
-          ./Porting/Tools/CollectPhase2Artifacts.sh "${{ github.event.inputs.device }}"
+          ./Porting/Tools/CollectPhase2Artifacts.sh "$DEVICE"
 
       - name: Build AnyKernel candidate zip
         if: always()
         run: |
-          chmod +x Porting/Tools/BuildAnykernelCandidate.sh
-          ./Porting/Tools/BuildAnykernelCandidate.sh
+          chmod +x Porting/Tools/BuildAnyKernelCandidate.sh
+          ./Porting/Tools/BuildAnyKernelCandidate.sh
 
       - name: Prepare release boot image (ROM-aware best effort)
         if: always()
         run: |
-          chmod +x Porting/Tools/PrepareReleaseBootimg.sh
-          ./Porting/Tools/PrepareReleaseBootimg.sh
+          chmod +x Porting/Tools/PrepareReleaseBootImg.sh
+          ./Porting/Tools/PrepareReleaseBootImg.sh
 
       - name: Fetch inventory and analyze reference drivers
         if: always()
@@ -111,7 +111,7 @@ jobs:
       - name: Validate AnyKernel candidate structure
         if: always()
         run: |
-          python3 Porting/Tools/ValidateAnykernelCandidate.py || true
+          python3 Porting/Tools/ValidateAnyKernelCandidate.py || true
 
       - name: Validate boot image constraints
         if: always()
@@ -172,7 +172,7 @@ jobs:
             "${{ github.run_number }}" \
             "${{ github.sha }}" \
             "${{ github.ref }}" \
-            "${{ github.event.inputs.device }}" \
+            "$DEVICE" \
             "$SOURCE_REPO" \
             "$SOURCE_BRANCH" \
             "$TARGET_REPO" \

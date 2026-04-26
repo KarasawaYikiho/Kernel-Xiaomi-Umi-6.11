@@ -116,6 +116,7 @@ sphinx_*/
 /target/
 /source.extract/
 /target.extract/
+/anykernel3/
 source.zip
 
 # Local editor/OS noise
@@ -130,3 +131,4 @@ Thumbs.db
 
 # Large local ROM baseline inputs
 Porting/OfficialRomBaseline/boot.img
+Porting/OfficialRomBaseline/*.zip

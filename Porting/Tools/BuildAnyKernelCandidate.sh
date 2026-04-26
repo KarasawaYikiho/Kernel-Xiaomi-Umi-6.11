@@ -39,8 +39,8 @@ if [ -n "$imagegz_path" ]; then
       cp -Rv "$template_dir"/. "$work_dir"/ || true
       cp -v "$imagegz_path" "$work_dir/Image.gz" || true
 
-      if [ -f "$work_dir/Anykernel.sh" ]; then
-        mv -f "$work_dir/Anykernel.sh" "$work_dir/anykernel.sh"
+      if [ -f "$work_dir/AnyKernel.sh" ]; then
+        mv -f "$work_dir/AnyKernel.sh" "$work_dir/anykernel.sh"
       fi
 
       # Optional: include first matched primary dtb as dtb

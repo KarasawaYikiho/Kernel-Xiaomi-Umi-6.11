@@ -5,9 +5,8 @@
 /.github/workflows/ @KarasawaYikiho
 
 # Porting scripts and plans
-/Tools/Porting/ @KarasawaYikiho
 /Porting/ @KarasawaYikiho
 
 # Top-level docs
 /README.md @KarasawaYikiho
-/Porting-Plan.md @KarasawaYikiho
+/PortingPlan.md @KarasawaYikiho

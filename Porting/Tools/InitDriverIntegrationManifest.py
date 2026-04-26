@@ -26,7 +26,7 @@ def main() -> int:
         "# Driver integration manifest",
         "# Mark completed work with: integrated:<item>",
         "# Keep unfinished work as: pending:<item>",
-        "# This file is consumed by Build_Driver_Integration_Status.py",
+        "# This file is consumed by BuildDriverIntegrationStatus.py",
         "",
     ]
     lines.extend([f"pending:{item}" for item in DEFAULT_PENDING])

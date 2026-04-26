@@ -24,6 +24,8 @@ def main() -> int:
     expect_contains(text, "if: github.ref == 'refs/heads/master'")
     expect_contains(text, 'echo "KERNEL_DIR=$GITHUB_WORKSPACE" >> "$GITHUB_ENV"')
     expect_contains(text, 'echo "OUT_DIR=$GITHUB_WORKSPACE/out" >> "$GITHUB_ENV"')
+    expect_contains(text, "DEVICE: ${{ github.event.inputs.device || 'umi' }}")
+    expect_contains(text, 'python3 Porting/Tools/ValidatePortDevice.py "$DEVICE"')
     expect_contains(text, 'make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 umi_defconfig')
     expect_contains(text, 'make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 -j"$(nproc)" Image.gz modules dtbs')
     expect_contains(text, 'cp -v out/.config artifacts/ || true')

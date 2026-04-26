@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Usage:
-#   Write_Run_Meta.sh <run_id> <run_number> <sha> <ref> <device> <source_repo> <source_branch> <target_repo> <target_branch>
+#   WriteRunMeta.sh <run_id> <run_number> <sha> <ref> <device> <source_repo> <source_branch> <target_repo> <target_branch>
 
 mkdir -p artifacts
 

@@ -22,14 +22,16 @@ The purpose of these files is to make ROM alignment reproducible inside CI witho
 
 `boot.img` is intentionally not checked into git because the stock image exceeds GitHub's file size limit. Its pinned size, hash, and header hints are stored in `Manifest.json` and `BootImageBaseline.env`, while local workflows can still consume a local ROM zip or extracted ROM directory.
 
-For GitHub Actions and other environments that cannot access local ROM directories, the official `boot.img` is stored in git as split chunks under `BootImgParts/`. Repeated zero-filled chunks are represented once and mapped through `Manifest.json`; CI reconstructs the full image via `Porting/Tools/MaterializeOfficialBootimg.py`.
+For GitHub Actions and other environments that cannot access local ROM directories, the official `boot.img` is stored in git as split chunks under `BootImgParts/`. Repeated zero-filled chunks are represented once and mapped through `Manifest.json`; CI reconstructs the full image via `Porting/Tools/MaterializeOfficialBootImg.py`.
 
 When you need a stock boot baseline, prefer this order:
 
-1. `OFFICIAL_ROM_DIR` or `OFFICIAL_ROM_ZIP`
-2. Local non-git `Porting/OfficialRomBaseline/boot.img`
-3. `ROM_BOOTIMG_PATH` in `BootImageBaseline.env`
-4. Workflow input `bootimg_prebuilt_path`
+1. `OFFICIAL_ROM_ZIP`
+2. `OFFICIAL_BOOTIMG_PATH`
+3. `OFFICIAL_ROM_DIR`
+4. Local non-git `Porting/OfficialRomBaseline/boot.img`
+5. `ROM_BOOTIMG_PATH` in `BootImageBaseline.env`
+6. Reconstructed `Porting/OfficialRomBaseline/BootImgParts/` chunks
 
 ## Current Binary Inputs
 
@@ -46,5 +48,5 @@ For local work, prefer `OFFICIAL_ROM_DIR` or `OFFICIAL_BOOTIMG_PATH` so the offi
 To refresh the split baseline after updating the local stock image:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File "Porting/Tools/RefreshOfficialBootimgParts.ps1"
+powershell -ExecutionPolicy Bypass -File "Porting/Tools/RefreshOfficialBootImgParts.ps1"
 ```

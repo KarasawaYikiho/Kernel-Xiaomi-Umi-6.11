@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Usage:
-#   Apply_Phase2_Migration.sh <device>
+#   ApplyPhase2Migration.sh <device>
 
 DEVICE="${1:-${DEVICE:-umi}}"
 

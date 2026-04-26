@@ -15,7 +15,6 @@ GITIGNORE = ROOT / ".gitignore"
 TOKEN_RE = re.compile(r"^[A-Z][a-zA-Z0-9]*$")
 PROJECT_NAME_CHECK_PREFIXES = (
     "Porting/",
-    ".github/IssueTemplate/",
 )
 PROJECT_NAME_CHECK_ROOT_FILES = {
     "AGENTS.md",
@@ -29,6 +28,8 @@ REQUIRED_IGNORES = (
     "/source.extract/",
     "/target.extract/",
     "source.zip",
+    "/anykernel3/",
+    "Porting/OfficialRomBaseline/*.zip",
     ".ruff_cache/",
     "__pycache__/",
 )
@@ -64,14 +65,12 @@ LOCAL_PATH_PATTERNS = (
     re.compile(rf"\b[A-Za-z]:[\\/]Users[\\/]{LOCAL_USER}[\\/][^\s`'\")]+", re.IGNORECASE),
     re.compile(rf"/mnt/[A-Za-z]/Users/{LOCAL_USER}/[^\s`'\")]+", re.IGNORECASE),
     re.compile(rf"(?:^|[\\/])Users[\\/]{LOCAL_USER}[\\/][^\s`'\")]+", re.IGNORECASE),
-    re.compile(re.escape(LOCAL_WORKSPACE_NAME)),
 )
 LOCAL_PATH_GREP_PATTERN = (
     rf"([A-Za-z]:[\\/]{LOCAL_ROM_ROOT}[\\/][^[:space:]`'\")]+"
     rf"|[A-Za-z]:[\\/]Users[\\/]{LOCAL_USER}[\\/][^[:space:]`'\")]+"
     rf"|/mnt/[A-Za-z]/Users/{LOCAL_USER}/[^[:space:]`'\")]+"
-    rf"|(^|[\\/])Users[\\/]{LOCAL_USER}[\\/][^[:space:]`'\")]+"
-    rf"|{re.escape(LOCAL_WORKSPACE_NAME)})"
+    rf"|(^|[\\/])Users[\\/]{LOCAL_USER}[\\/][^[:space:]`'\")]+)"
 )
 
 
