@@ -29,7 +29,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-bash "Porting/Tools/PrepareReleaseBootimg.sh"
+bash "Porting/Tools/PrepareReleaseBootImg.sh"
 if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }

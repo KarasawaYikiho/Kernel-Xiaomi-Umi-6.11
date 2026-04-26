@@ -22,10 +22,11 @@ This repo is now a kernel source tree. SO-TS 4.19 is reference-only for targeted
 
 Run **`Build-Umi-Kernel.yml`** to build the checked-out kernel tree, or **`ROM-Aligned-Umi-Port.yml`** for ROM-aligned evidence and packaging. Inspect:
 
-1. `artifacts/phase2-report.txt`
-2. `artifacts/next-focus.txt`
-3. `artifacts/runtime-validation-summary.md`
-4. `artifacts/anykernel-info.txt`
+1. `artifacts/plan-progress.md`
+2. `artifacts/phase2-report.txt`
+3. `artifacts/next-focus.txt`
+4. `artifacts/runtime-validation-summary.md`
+5. `artifacts/anykernel-info.txt`
 
 ## Inputs
 

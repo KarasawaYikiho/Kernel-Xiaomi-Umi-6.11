@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Run post-processing suite for phase2 artifacts.
-# Usage: Run_Postprocess_Suite.sh
+# Usage: RunPostprocessSuite.sh
 
 source "Porting/Tools/Common.sh"
 python_cmd="$(require_python_cmd)" || exit 1
@@ -33,7 +33,7 @@ steps=(
   "ParseRuntimeValidationInput.py"
   "InitDriverIntegrationManifest.py"
   "InitRomAlignmentManifest.py"
-  "BuildAnykernelCandidate.sh"
+  "BuildAnyKernelCandidate.sh"
   "BuildDriverIntegrationEvidence.py"
   "BuildDtbManifest.py"
   "ListBuiltDtbPaths.py"
@@ -41,7 +41,7 @@ steps=(
   "AnalyzeDtbMiss.py"
   "SyncDriverIntegrationManifest.py"
   "ValidateDriverIntegrationManifest.py"
-  "ValidateAnykernelCandidate.py"
+  "ValidateAnyKernelCandidate.py"
   "ValidateBootImage.py"
   "SyncRomAlignmentManifest.py"
   "ValidateRomAlignmentManifest.py"

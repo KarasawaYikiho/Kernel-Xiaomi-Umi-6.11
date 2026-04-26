@@ -422,8 +422,8 @@ baseline_pagesize="$(read_baseline_env_value BOOTIMG_PAGESIZE 2>/dev/null || tru
 rom_baseline_bootimg_path="$(read_baseline_env_value ROM_BOOTIMG_PATH 2>/dev/null || true)"
 rom_baseline_bootimg_path="$(normalize_input_path "$rom_baseline_bootimg_path")"
 
-if [[ -z "$rom_baseline_bootimg_path" && -n "$python_cmd" && -f Porting/Tools/MaterializeOfficialBootimg.py ]]; then
-  materialized_bootimg_path="$($python_cmd Porting/Tools/MaterializeOfficialBootimg.py 2>/dev/null || true)"
+if [[ -z "$rom_baseline_bootimg_path" && -n "$python_cmd" && -f Porting/Tools/MaterializeOfficialBootImg.py ]]; then
+  materialized_bootimg_path="$($python_cmd Porting/Tools/MaterializeOfficialBootImg.py 2>/dev/null || true)"
   materialized_bootimg_path="$(normalize_input_path "$materialized_bootimg_path")"
   if [[ -n "$materialized_bootimg_path" && -f "$materialized_bootimg_path" ]]; then
     rom_baseline_bootimg_path="$materialized_bootimg_path"

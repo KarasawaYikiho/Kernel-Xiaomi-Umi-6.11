@@ -36,6 +36,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-24.04
     env:
+      DEVICE: ${{ github.event.inputs.device || 'umi' }}
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     permissions:
       contents: read
@@ -65,15 +66,15 @@ jobs:
 
       - name: Validate device against SM8250 config
         run: |
-          python3 Porting/Tools/ValidatePortDevice.py "${{ github.event.inputs.device }}"
+          python3 Porting/Tools/ValidatePortDevice.py "$DEVICE"
 
       - name: Setup cache (ccache)
         uses: actions/cache@v4
         with:
           path: ~/.cache/ccache_mikernel
-          key: kernel-ccache-${{ github.event.inputs.device }}-${{ github.run_id }}
+          key: kernel-ccache-${{ env.DEVICE }}-${{ github.run_id }}
           restore-keys: |
-            kernel-ccache-${{ github.event.inputs.device }}-
+            kernel-ccache-${{ env.DEVICE }}-
             kernel-ccache-
 
       - name: Setup Toolchain (ZyC-Clang 15)
@@ -100,6 +101,6 @@ jobs:
       - name: Upload artifacts
         uses: actions/upload-artifact@v5
         with:
-          name: Kernel-${{ github.event.inputs.device }}-${{ github.run_number }}
+          name: Kernel-${{ env.DEVICE }}-${{ github.run_number }}
           path: artifacts/
           if-no-files-found: error
