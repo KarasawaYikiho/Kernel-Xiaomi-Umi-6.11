@@ -88,11 +88,25 @@ jobs:
             echo "KernelSU enablement is not wired for the in-repo Kbuild flow yet" >&2
             exit 1
           fi
+          mkdir -p artifacts
           find scripts -type f -exec sh -c 'case "$(head -c 2 "$1" 2>/dev/null)" in "#!") chmod +x "$1";; esac' sh {} \;
-          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 umi_defconfig
-          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 -j"$(nproc)" Image.gz dtbs
+          set +e
+          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 umi_defconfig > artifacts/make-defconfig.log 2>&1
+          rc1=$?
+          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 -j"$(nproc)" Image.gz dtbs > artifacts/make-build.log 2>&1
+          rc2=$?
+          set -e
+          {
+            echo "defconfig_rc=$rc1"
+            echo "build_rc=$rc2"
+          } > artifacts/build-exit.txt
+          if [ "$rc1" -ne 0 ] || [ "$rc2" -ne 0 ]; then
+            echo "::error title=Kernel build failed::defconfig_rc=$rc1 build_rc=$rc2; inspect uploaded make logs"
+            exit 2
+          fi
 
       - name: Collect artifacts
+        if: always()
         run: |
           mkdir -p artifacts
           cp -v out/.config artifacts/ || true
@@ -100,6 +114,7 @@ jobs:
           find out/arch/arm64/boot/dts -name '*.dtb' -print -exec cp -v {} artifacts/ \; || true
 
       - name: Upload artifacts
+        if: always()
         uses: actions/upload-artifact@v5
         with:
           name: Kernel-${{ env.DEVICE }}-${{ github.run_number }}

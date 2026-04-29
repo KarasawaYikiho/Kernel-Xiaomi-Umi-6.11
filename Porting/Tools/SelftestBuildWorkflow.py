@@ -28,8 +28,14 @@ def main() -> int:
     expect_contains(text, 'python3 Porting/Tools/ValidatePortDevice.py "$DEVICE"')
     expect_contains(text, "find scripts -type f -exec sh -c '")
     expect_contains(text, "head -c 2 \"$1\"")
+    expect_contains(text, "mkdir -p artifacts")
+    expect_contains(text, "> artifacts/make-defconfig.log 2>&1")
+    expect_contains(text, "> artifacts/make-build.log 2>&1")
+    expect_contains(text, "defconfig_rc=$rc1")
+    expect_contains(text, "build_rc=$rc2")
     expect_contains(text, 'make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 umi_defconfig')
     expect_contains(text, 'make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 -j"$(nproc)" Image.gz dtbs')
+    expect_contains(text, "if: always()")
     expect_contains(text, 'cp -v out/.config artifacts/ || true')
     expect_contains(text, 'cp -v out/arch/arm64/boot/Image.gz artifacts/ || true')
     expect_not_contains(text, 'working-directory: kernel')
@@ -50,6 +56,7 @@ def main() -> int:
     expect_contains(phase2, 'make -C "$KERNEL_DIR" O="$OUT_DIR" ARCH=arm64 LLVM=1 LLVM_IAS=1 -j"$(nproc)" Image.gz')
     expect_not_contains(phase2, 'Image.gz modules')
     expect_contains(phase2, 'make -C "$KERNEL_DIR" O="$OUT_DIR" ARCH=arm64 LLVM=1 LLVM_IAS=1 "qcom/$dtb"')
+    expect_contains(phase2, "::error title=Phase2 kernel build failed::defconfig_rc=$rc1 build_rc=$rc2")
 
     anykernel = (ROOT / "Porting" / "Tools" / "BuildAnyKernelCandidate.sh").read_text(
         encoding="utf-8"

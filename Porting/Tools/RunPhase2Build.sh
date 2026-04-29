@@ -60,5 +60,6 @@ set -e
 
 # fail only when defconfig or core build failed
 if [ "$rc1" -ne 0 ] || [ "$rc2" -ne 0 ]; then
+  echo "::error title=Phase2 kernel build failed::defconfig_rc=$rc1 build_rc=$rc2; inspect make-defconfig.log and make-build.log"
   exit 1
 fi
