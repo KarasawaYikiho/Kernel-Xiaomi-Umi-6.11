@@ -44,6 +44,11 @@ TRACKED_GENERATED_PREFIXES = (
 )
 TRACKED_GENERATED_FILES = ("source.zip",)
 TRACKED_GENERATED_SUFFIXES = (".pyc",)
+REQUIRED_EXECUTABLE_KERNEL_HELPERS = (
+    "scripts/as-version.sh",
+    "scripts/cc-version.sh",
+    "scripts/ld-version.sh",
+)
 TEXT_SCAN_SKIP_SUFFIXES = (
     ".bin",
     ".bmp",
@@ -281,6 +286,34 @@ def check_tracked_generated_content() -> list[str]:
     return errs
 
 
+def check_kernel_build_helper_modes() -> list[str]:
+    proc = subprocess.run(
+        ["git", "ls-files", "-s", *REQUIRED_EXECUTABLE_KERNEL_HELPERS],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        detail = proc.stderr.strip() or proc.stdout.strip() or "unknown git ls-files error"
+        return [f"unable to inspect kernel helper modes: {detail}"]
+
+    tracked_modes: dict[str, str] = {}
+    for raw in proc.stdout.splitlines():
+        parts = raw.split(None, 3)
+        if len(parts) == 4:
+            tracked_modes[parts[3]] = parts[0]
+
+    errs: list[str] = []
+    for helper in REQUIRED_EXECUTABLE_KERNEL_HELPERS:
+        mode = tracked_modes.get(helper)
+        if mode is None:
+            continue
+        if mode != "100755":
+            errs.append(f"kernel build helper is not executable: {helper} mode={mode}")
+    return errs
+
+
 def main() -> int:
     errors = []
     errors.extend(check_python_compile())
@@ -289,6 +322,7 @@ def main() -> int:
     errors.extend(check_markdown_links())
     errors.extend(check_generated_dirs_ignored())
     errors.extend(check_tracked_generated_content())
+    errors.extend(check_kernel_build_helper_modes())
     errors.extend(check_tracked_names())
     errors.extend(check_no_local_paths_in_tracked_content())
 
