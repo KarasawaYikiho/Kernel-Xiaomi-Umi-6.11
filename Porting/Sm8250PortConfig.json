@@ -13,9 +13,13 @@
     "lmi",
     "munch",
     "pipa",
+    "poussin",
     "psyche",
+    "skuld",
     "thyme",
-    "umi"
+    "umi",
+    "urd",
+    "verthandi"
   ],
   "source": {
     "repo": "https://github.com/SO-TS/android_kernel_xiaomi_sm8250.git",
@@ -58,6 +62,15 @@
   "boot_artifact_strategy": {
     "kind": "official_aligned_custom_boot",
     "first_device_route": "fastboot_boot",
+    "kernel_prefer_uncompressed": true,
+    "embed_device_dtb": true,
+    "dtbo_strategy": {
+      "kind": "kernel_built_dtb_table",
+      "source": "kernel_built_dtbs",
+      "board_id_source": "Porting/KonaBoardIds.json",
+      "overlay_converter": "Porting/Tools/BuildDtboOverlay.py",
+      "image_packer": "Porting/Tools/BuildDtboImage.py"
+    },
     "patcher_agnostic": true,
     "compatible_patchers": ["KernelSU", "Magisk"],
     "alignment_inputs": ["official_boot_header", "official_ramdisk", "official_cmdline", "official_partition_size", "official_dtbo_vbmeta_baseline"]

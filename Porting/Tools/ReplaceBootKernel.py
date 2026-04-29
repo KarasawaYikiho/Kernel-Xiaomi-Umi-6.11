@@ -43,6 +43,7 @@ def replace_boot_kernel(
     output_boot: Path,
     *,
     required_bytes: int = 0,
+    dtb_path: str | Path | None = None,
 ) -> None:
     original = stock_boot.read_bytes()
     if not original.startswith(ANDROID_MAGIC):
@@ -76,10 +77,27 @@ def replace_boot_kernel(
     if not new_kernel:
         raise ValueError(f"kernel image is empty: {kernel_image}")
 
+    if dtb_path is not None:
+        if header_version < 2:
+            raise ValueError("DTB replacement requires Android boot header version 2")
+        new_dtb = Path(dtb_path).read_bytes()
+        if not new_dtb:
+            raise ValueError(f"dtb image is empty: {dtb_path}")
+        dtb = new_dtb
+        dtb_size = len(new_dtb)
+
     header = bytearray(original[:page_size])
     struct.pack_into("<I", header, KERNEL_SIZE_OFFSET, len(new_kernel))
     if header_version >= 1:
-        struct.pack_into("<Q", header, RECOVERY_DTBO_OFFSET_OFFSET, 0)
+        recovery_dtbo_offset = (
+            page_size
+            + align(len(new_kernel), page_size)
+            + align(ramdisk_size, page_size)
+            + align(second_size, page_size)
+        ) if recovery_dtbo else 0
+        struct.pack_into("<Q", header, RECOVERY_DTBO_OFFSET_OFFSET, recovery_dtbo_offset)
+    if header_version >= 2:
+        struct.pack_into("<I", header, DTB_SIZE_OFFSET, dtb_size)
 
     out = bytearray(header)
     for payload in (new_kernel, ramdisk, second, recovery_dtbo, dtb):
@@ -104,12 +122,14 @@ def main() -> int:
     parser.add_argument("--kernel", required=True)
     parser.add_argument("--output", required=True)
     parser.add_argument("--required-bytes", type=int, default=0)
+    parser.add_argument("--dtb", default=None, help="replace boot image DTB section")
     args = parser.parse_args()
     replace_boot_kernel(
         Path(args.stock_boot),
         Path(args.kernel),
         Path(args.output),
         required_bytes=args.required_bytes,
+        dtb_path=args.dtb,
     )
     print(Path(args.output).as_posix())
     return 0

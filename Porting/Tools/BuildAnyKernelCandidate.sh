@@ -37,6 +37,7 @@ if [ -n "$imagegz_path" ]; then
     mkdir -p "$work_dir"
     cp -Rv "$template_dir"/. "$work_dir"/ || true
     cp -v "$imagegz_path" "$work_dir/Image.gz" || true
+    cp -v artifacts/dtbo.img "$work_dir/dtbo.img" || true
 
     if [ -f "$work_dir/AnyKernel.sh" ]; then
       mv -f "$work_dir/AnyKernel.sh" "$work_dir/anykernel.sh"

@@ -28,7 +28,7 @@ TARGET_DTS_ROOTS = [
 ]
 
 ALLOW = re.compile(
-    r"(sm8250-xiaomi|xiaomi-sm8250|qcom-sm8250|sm8250|kona|umi|cmi|lmi|apollo|alioth|thyme|psyche|cas|munch|elish|enuma|dagu|pipa)",
+    r"(sm8250-xiaomi|xiaomi-sm8250|qcom-sm8250|sm8250|kona|umi|cmi|lmi|apollo|alioth|thyme|psyche|cas|munch|elish|enuma|dagu|pipa|poussin|skuld|urd|verthandi)",
     re.I,
 )
 DENY = re.compile(r"(rumi|lumia|sony|hdk|mtp|edo|pdx|iot-rb5|xiaomi-sm8250-common)", re.I)

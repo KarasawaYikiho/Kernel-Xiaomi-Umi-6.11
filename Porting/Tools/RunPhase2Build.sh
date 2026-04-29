@@ -26,7 +26,7 @@ make -C "$KERNEL_DIR" O="$OUT_DIR" ARCH=arm64 LLVM=1 LLVM_IAS=1 "${DEVICE}_defco
 rc1=$?
 
 # Core build for packaging/readiness (fatal on failure)
-make -C "$KERNEL_DIR" O="$OUT_DIR" ARCH=arm64 LLVM=1 LLVM_IAS=1 -j"$(nproc)" Image.gz > "$ARTIFACTS_DIR/make-build.log" 2>&1
+make -C "$KERNEL_DIR" O="$OUT_DIR" ARCH=arm64 LLVM=1 LLVM_IAS=1 -j"$(nproc)" Image Image.gz > "$ARTIFACTS_DIR/make-build.log" 2>&1
 rc2=$?
 
 # Build preferred DTBs from migrated manifest first (non-fatal for phase2 progression)
@@ -49,6 +49,23 @@ else
   # Fallback to matrix dtbs build for diagnostics only
   make -C "$KERNEL_DIR" O="$OUT_DIR" ARCH=arm64 LLVM=1 LLVM_IAS=1 -j"$(nproc)" dtbs > "$ARTIFACTS_DIR/make-target-dtbs.log" 2>&1
   rc3=$?
+fi
+
+dtbo_input_dir="$OUT_DIR/arch/arm64/boot/dts/qcom"
+if [ -f "Porting/KonaBoardIds.json" ] && [ -d "$dtbo_input_dir" ]; then
+  dtbo_work_dir="$ARTIFACTS_DIR/dtbo-work"
+  "$python_cmd" Porting/Tools/BuildKonaDtboOverlays.py \
+    --board-ids Porting/KonaBoardIds.json \
+    --dtb-dir "$dtbo_input_dir" \
+    --output-dir "$dtbo_work_dir" \
+    --out-dir "$OUT_DIR" > "$ARTIFACTS_DIR/dtbo-overlay-build.log" 2>&1 || true
+  if find "$dtbo_work_dir" -type f -name '*.dtbo' 2>/dev/null | grep -q .; then
+    dtbo_input_dir="$dtbo_work_dir"
+  fi
+  "$python_cmd" Porting/Tools/BuildDtboImage.py \
+    --board-ids Porting/KonaBoardIds.json \
+    --dtb-dir "$dtbo_input_dir" \
+    --output "$ARTIFACTS_DIR/dtbo.img" > "$ARTIFACTS_DIR/dtbo-build.log" 2>&1 || true
 fi
 set -e
 

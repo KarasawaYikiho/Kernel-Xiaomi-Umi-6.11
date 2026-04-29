@@ -93,15 +93,18 @@ jobs:
           set +e
           make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 umi_defconfig > artifacts/make-defconfig.log 2>&1
           rc1=$?
-          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 -j"$(nproc)" Image.gz > artifacts/make-build.log 2>&1
+          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 -j"$(nproc)" Image Image.gz > artifacts/make-build.log 2>&1
           rc2=$?
+          make O=out ARCH=arm64 LLVM=1 LLVM_IAS=1 qcom/sm8250-xiaomi-umi.dtb > artifacts/make-dtbs.log 2>&1
+          rc3=$?
           set -e
           {
             echo "defconfig_rc=$rc1"
             echo "build_rc=$rc2"
+            echo "dtbs_rc=$rc3"
           } > artifacts/build-exit.txt
-          if [ "$rc1" -ne 0 ] || [ "$rc2" -ne 0 ]; then
-            echo "::error title=Kernel build failed::defconfig_rc=$rc1 build_rc=$rc2; inspect uploaded make logs"
+          if [ "$rc1" -ne 0 ] || [ "$rc2" -ne 0 ] || [ "$rc3" -ne 0 ]; then
+            echo "::error title=Kernel build failed::defconfig_rc=$rc1 build_rc=$rc2 dtbs_rc=$rc3; inspect uploaded make logs"
             exit 2
           fi
 
@@ -110,8 +113,18 @@ jobs:
         run: |
           mkdir -p artifacts
           cp -v out/.config artifacts/ || true
+          cp -v out/arch/arm64/boot/Image artifacts/ || true
           cp -v out/arch/arm64/boot/Image.gz artifacts/ || true
           find out/arch/arm64/boot/dts -name '*.dtb' -print -exec cp -v {} artifacts/ \; || true
+          python3 Porting/Tools/BuildKonaDtboOverlays.py \
+            --board-ids Porting/KonaBoardIds.json \
+            --dtb-dir out/arch/arm64/boot/dts/qcom \
+            --output-dir artifacts/dtbo-work \
+            --out-dir out || true
+          python3 Porting/Tools/BuildDtboImage.py \
+            --board-ids Porting/KonaBoardIds.json \
+            --dtb-dir artifacts/dtbo-work \
+            --output artifacts/dtbo.img || true
 
       - name: Upload artifacts
         if: always()

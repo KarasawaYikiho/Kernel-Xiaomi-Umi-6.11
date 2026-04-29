@@ -25,6 +25,7 @@ cp -v "$PHASE2_PORT_DIR/included_dts.txt" "$ARTIFACTS_DIR"/ || true
 cp -v "$OUT_DIR/.config" "$ARTIFACTS_DIR"/ || true
 cp -v "$OUT_DIR/arch/arm64/boot/Image" "$ARTIFACTS_DIR"/ || true
 cp -v "$OUT_DIR/arch/arm64/boot/Image.gz" "$ARTIFACTS_DIR"/ || true
+cp -v "$ARTIFACTS_DIR/dtbo.img" "$BUNDLE_DIR"/ || true
 cp -v "$OUT_DIR/arch/arm64/boot/boot.img" "$ARTIFACTS_DIR"/ || true
 cp -v "$OUT_DIR/boot.img" "$ARTIFACTS_DIR"/ || true
 

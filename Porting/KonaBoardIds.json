@@ -1,0 +1,20 @@
+{
+  "_description": "Xiaomi Kona (SM8250) board-id mapping extracted from official MIUI dtbo.img qcom,board-id properties.",
+  "cmi": { "board_id": 36, "msm_id": 356 },
+  "lmi": { "board_id": 37, "msm_id": 356 },
+  "urd": { "board_id": 38, "msm_id": 356 },
+  "verthandi": { "board_id": 39, "msm_id": 356 },
+  "skuld": { "board_id": 40, "msm_id": 356 },
+  "cas": { "board_id": 41, "msm_id": 356 },
+  "apollo": { "board_id": 42, "msm_id": 356 },
+  "umi": { "board_id": 43, "msm_id": 356 },
+  "alioth": { "board_id": 44, "msm_id": 356 },
+  "thyme": { "board_id": 45, "msm_id": 356 },
+  "enuma": { "board_id": 46, "msm_id": 356 },
+  "elish": { "board_id": 47, "msm_id": 356 },
+  "psyche": { "board_id": 48, "msm_id": 356 },
+  "poussin": { "board_id": 49, "msm_id": 356 },
+  "munch": { "board_id": 50, "msm_id": 356 },
+  "dagu": { "board_id": 51, "msm_id": 356 },
+  "pipa": { "board_id": 52, "msm_id": 356 }
+}

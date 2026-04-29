@@ -364,6 +364,7 @@ prepare_official_rom_bootimg() {
       "$python_cmd" Porting/Tools/ReplaceBootKernel.py \
         --stock-boot "$source_boot" \
         --kernel "$kernel_path" \
+        "${dtb_arg[@]}" \
         --output "$out_boot" \
         --required-bytes "$repack_required_bytes" >/dev/null
       repack_rc=$?
@@ -395,11 +396,18 @@ prepare_official_rom_bootimg() {
   fi
 }
 
-# kernel
-if [[ -f "$OUT_DIR/arch/arm64/boot/Image.gz" ]]; then
-  kernel_path="$OUT_DIR/arch/arm64/boot/Image.gz"
-elif [[ -f "$OUT_DIR/arch/arm64/boot/Image" ]]; then
+# kernel: prefer uncompressed Image to match the official Xiaomi boot image format.
+if [[ -f "$OUT_DIR/arch/arm64/boot/Image" ]]; then
   kernel_path="$OUT_DIR/arch/arm64/boot/Image"
+elif [[ -f "$OUT_DIR/arch/arm64/boot/Image.gz" ]]; then
+  kernel_path="$OUT_DIR/arch/arm64/boot/Image.gz"
+fi
+
+dtb_arg=()
+device_dtb="$OUT_DIR/arch/arm64/boot/dts/qcom/sm8250-xiaomi-${DEVICE:-umi}.dtb"
+if [[ -f "$device_dtb" && "${BOOTIMG_EMBED_DTB:-1}" != "0" ]]; then
+  dtb_path="$device_dtb"
+  dtb_arg=(--dtb "$device_dtb")
 fi
 
 # ramdisk (mandatory for direct flashable boot.img)

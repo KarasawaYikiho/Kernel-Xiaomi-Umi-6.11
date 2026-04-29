@@ -98,6 +98,28 @@ def main() -> int:
         if b"official-dtb" not in data:
             raise AssertionError("official dtb payload missing")
 
+        replacement_dtb = tmp / "sm8250-xiaomi-umi.dtb"
+        replacement_out = tmp / "custom-boot-with-umi-dtb.img"
+        replacement_dtb.write_bytes(b"complete-umi-dtb")
+        ReplaceBootKernel.replace_boot_kernel(
+            stock,
+            new_kernel,
+            replacement_out,
+            required_bytes=stock.stat().st_size,
+            dtb_path=str(replacement_dtb),
+        )
+        replacement_data = replacement_out.read_bytes()
+        expect("replacement size", replacement_out.stat().st_size, stock.stat().st_size)
+        expect(
+            "replacement dtb size",
+            struct.unpack_from("<I", replacement_data, 1648)[0],
+            len(b"complete-umi-dtb"),
+        )
+        if b"complete-umi-dtb" not in replacement_data:
+            raise AssertionError("replacement umi dtb payload missing")
+        if b"official-dtb" in replacement_data:
+            raise AssertionError("old official dtb payload should have been replaced")
+
         cwd = Path.cwd()
         old_required_bytes = os.environ.get("BOOTIMG_REQUIRED_BYTES")
         try:
