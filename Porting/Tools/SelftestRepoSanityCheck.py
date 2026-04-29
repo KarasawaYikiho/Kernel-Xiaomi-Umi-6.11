@@ -98,6 +98,33 @@ def assert_localized_root_docs_are_checked_for_titlecase() -> None:
         raise AssertionError(f"localized root docs missing from titlecase check: {sorted(missing)}")
 
 
+def assert_kernel_build_helpers_must_be_executable() -> None:
+    original_run = RepoSanityCheck.subprocess.run
+
+    def fake_run(cmd, **kwargs):
+        if cmd[:2] == ["git", "ls-files"] and "-s" in cmd:
+            return FakeCompletedProcess(
+                0,
+                "100644 abc 0\tscripts/cc-version.sh\n"
+                "100755 def 0\tscripts/ld-version.sh\n"
+                "100644 ghi 0\tscripts/as-version.sh\n",
+            )
+        raise AssertionError(f"unexpected subprocess call: {cmd}")
+
+    RepoSanityCheck.subprocess.run = fake_run
+    try:
+        errors = RepoSanityCheck.check_kernel_build_helper_modes()
+    finally:
+        RepoSanityCheck.subprocess.run = original_run
+
+    expected = [
+        "kernel build helper is not executable: scripts/as-version.sh mode=100644",
+        "kernel build helper is not executable: scripts/cc-version.sh mode=100644",
+    ]
+    if errors != expected:
+        raise AssertionError(f"unexpected executable mode errors: {errors}")
+
+
 def assert_repo_url_is_not_local_path_leak() -> None:
     with tempfile.TemporaryDirectory(prefix="repo-sanity-repo-url-") as tmpdir:
         sample = Path(tmpdir) / "Sample.md"
@@ -117,6 +144,7 @@ def main() -> int:
     assert_required_ignores_cover_local_anykernel_and_rom_archives()
     assert_github_standard_templates_do_not_fail_titlecase_check()
     assert_localized_root_docs_are_checked_for_titlecase()
+    assert_kernel_build_helpers_must_be_executable()
     assert_repo_url_is_not_local_path_leak()
 
     with tempfile.TemporaryDirectory(prefix="repo-sanity-local-path-") as tmpdir:
