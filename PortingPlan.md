@@ -55,7 +55,7 @@ Phase 2 must finish first because current artifacts can produce a release-ready 
 
 ## Current Evidence Snapshot
 
-Latest analyzed artifact: local Phase2 postprocess with official ROM boot baseline.
+Latest analyzed artifact: local WSL build with DTB embedding and DTBO packaging.
 
 Observed state:
 
@@ -69,11 +69,12 @@ Observed state:
 - `anykernel_validate_status=ok`
 - `bootimg_status=ok`
 - `bootimg_rom_size_match=yes`
-- `bootimg_rom_sha256_match=yes`
 - `bootimg_rom_header_version_match=yes`
 - `bootimg_official_reference_gate=yes`
+- `dtb_embedded=sm8250-xiaomi-umi.dtb`
+- `kernel_format=uncompressed_Image`
 - `runtime_ready=no`
-- `next_action=integrate-drivers-phase3`
+- `next_action=ready-for-fastboot-boot`
 
 Current Phase 2 blocker:
 
@@ -121,14 +122,6 @@ Checklist:
 - [x] Local evidence confirms `dtbs_rc=0`
 - [x] Phase 2 report has no required blockers
 - [x] Update `Porting/CHANGELOG.md` with Phase 2 milestone evidence
-
-Immediate work:
-
-1. Ensure `Build-Umi-Kernel.yml` builds from `$GITHUB_WORKSPACE`, not from an externally cloned source or target repository.
-2. Tighten DTB manifest generation so non-current-device IoT RB5 boards and weak common aliases do not block Umi Phase 2.
-3. Run local selftests and repository sanity checks.
-4. Rerun `ROM-Aligned-Umi-Port.yml` for `umi`.
-5. Inspect the new artifact set before changing Phase 2 status.
 
 Phase 2 exit criteria:
 
